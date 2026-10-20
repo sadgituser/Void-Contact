@@ -66,7 +66,7 @@ buttonFont = font.Font(family="Consolas", size=16, underline=True)
 titleFont = font.Font(family="Consolas", size=26, underline=True, weight="bold")
 descriptionFont = font.Font(family="Consolas", size=14)
 popup_title_font = font.Font(family="Consolas", size=18, weight="bold", underline=True)
-popup_text_font = font.Font(family="Consolas", size=13)
+popup_text_font = font.Font(family="Consolas", size=10)
 popup_btn_font = font.Font(family="Consolas", size=11, underline=True)
 
 # Labels and Button
@@ -128,8 +128,14 @@ def open_lore_popup(parent_root):
     )
 
     canvas.create_text(
-        width // 2, 100,
-        text="Here I will put the lore of the app, but I will do that later!",
+        width // 2, 187,
+        text="Back on Earth at the Void Science division of the Global Space Agency (GSA), we discovered an endless void just hanging out in space. Of course, being the curious " \
+        "creatures that we are, we approached the Void via an intercept with the ISS, where a small space module fired out of it in order to reach the Void. Our signal antenna " \
+        "that was supposed to be used for backup communications on Earth was transmitting to the Void and recieving transmissions back. Over the course of a few months, a reliable " \
+        "language was established between us humans and the Void, and that language was (conveniently known as) English. Now, you are the first non-scientist human to take part " \
+        "in this experiment of general communications with extraterrestrial beings, aka chatting with aliens. However, since this communications software is proprietary and open-soure, " \
+        "we require you to authenticate yourself with a self-generated Access Token which you can enter on the main page of this software. This is all that we here at GSA are allowed to " \
+        "disclose to you, so good luck on your communications and we will see you when you report back!",
         font=popup_text_font,
         fill=active_foreground_colour,
         width=520,
@@ -178,8 +184,12 @@ def open_info_popup(parent_root):
     )
 
     canvas.create_text(
-        width // 2, 100, 
-        text="Here I will put the description of how the app works, but I will come back to it later!",
+        width // 2, 120, 
+        text="This app basically works by using an AI with a set of rules to respond to user queries about an in game universe. In order to talk with the AI, on the main screen, click 'Information' at the top and go to 'Authenticate User' " \
+        "and it will take you to a new window with a text box that asks you for an 'Access Token', here you put in your AI's API key. If you are a teenager with Hackclub (hackclub.com), then you can go to " \
+        "ai.hackcklub.com and sign in with Hackclub to get $3.00 USD of AI use every day. " \
+        "" \
+        "",
         font=popup_text_font,
         fill=active_foreground_colour,
         width=520,
@@ -200,12 +210,89 @@ def open_info_popup(parent_root):
 
     canvas.create_window(width // 2, 350, window=infoPopup_exit_btn)
 
+def open_authenticate_popup(parent_window):
+    authPopup = tk.Toplevel(parent_window)
+    authPopup.title("AUTHENTICATE USER")
+    authPopup.geometry("600x400+400+300")
+    authPopup.resizable(False, False)
+    authPopup.configure(bg=background_colour, cursor=void_cursor)
+    authPopup.iconbitmap(void_icon)
+
+    width, height = 600, 400
+    canvas = tk.Canvas(authPopup, width=width, height=height, highlightthickness=0, bg=background_colour)
+    canvas.place(x=0, y=0, relwidth=1, relheight=1)
+
+    canvas.create_rectangle(0, 0, width, height, fill=background_colour, outline="")
+
+    for i in range(100, height + 100, 30):
+        factor = max(0.0, min(1.0, (i / height))) ** 5
+        colour = interpolate_color(background_colour, foreground_colour, factor)
+        canvas.create_line(-100, i, width + 100, i + 60, fill=colour, width=60)
+
+    canvas.create_text(
+        width // 2, 40,
+        text="AUTHENTICATE TOKEN",
+        font=popup_title_font,
+        fill=active_foreground_colour,
+        justify="center"
+    )
+
+    canvas.create_text(
+        width // 2, 120,
+        text="Authenticate User Here - Enter Token:",
+        font=descriptionFont,
+        fill=active_foreground_colour,
+        width=520,
+        justify="center"
+    )
+
+    auth_exit_btn = Button(authPopup,
+        text="CLOSE WINDOW",
+        font=popup_btn_font,
+        command=authPopup.destroy,
+        bg=foreground_colour,
+        fg=background_colour,
+        activebackground=active_background_colour,
+        activeforeground=active_foreground_colour,
+        padx=10,
+        pady=3
+    )
+
+    api_entry = Entry(authPopup,
+        font=descriptionFont,
+        bg="#1E0824",
+        fg=active_foreground_colour,
+        insertbackground="white",
+        width=35
+    )
+
+    api_confirm = Button(authPopup,
+        text="CONFIRM TOKEN",
+        font=popup_btn_font,
+        command = None,
+        bg=foreground_colour,
+        fg=background_colour,
+        activebackground=active_background_colour,
+        activeforeground=active_foreground_colour,
+        padx=10,
+        pady=3
+    )
+
+    canvas.create_window(width // 2, 200, window=api_entry, height=30)
+    canvas.create_window(width // 2, 275, window=api_confirm)
+    canvas.create_window(width // 2, 350, window=auth_exit_btn)
+
+
+
+
+
 
 menubar = tk.Menu(root)
 infoMenu = Menu(menubar, tearoff=0)
 menubar.add_cascade(label="Information", menu=infoMenu)
 infoMenu.add_command(label="Lore", command=lambda: open_lore_popup(root))
 infoMenu.add_command(label="How It Works", command=lambda: open_info_popup(root))
+infoMenu.add_command(label="Authenticate User", command=lambda: open_authenticate_popup(root))
 
 #Initialise Root Window
 root.config(menu=menubar)
