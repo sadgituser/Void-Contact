@@ -1,4 +1,4 @@
-# void-contact
+# Void-Contact
 An AI powered app that allows you to talk to the deep and never ending void
 
 It's easy to use, just enter your API key for an AI and chat to them in the deep and never-ending void!

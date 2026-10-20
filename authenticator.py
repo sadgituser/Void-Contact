@@ -65,6 +65,9 @@ for i in range(-200, window_height + 200, 30):
 buttonFont = font.Font(family="Consolas", size=16, underline=True)
 titleFont = font.Font(family="Consolas", size=26, underline=True, weight="bold")
 descriptionFont = font.Font(family="Consolas", size=14)
+popup_title_font = font.Font(family="Consolas", size=18, weight="bold", underline=True)
+popup_text_font = font.Font(family="Consolas", size=13)
+popup_btn_font = font.Font(family="Consolas", size=11, underline=True)
 
 # Labels and Button
 titleLabel = canvas.create_text(
@@ -96,11 +99,113 @@ closeRootButton = Button(root,
 # Create Canvas
 canvas.create_window(400, 500, window=closeRootButton)
 
+
+def open_lore_popup(parent_root):
+    lorePopup = tk.Toplevel(parent_root)
+    lorePopup.title("VOID LORE")
+    lorePopup.geometry("600x400+350+250")
+    lorePopup.resizable(False, False)
+    lorePopup.configure(bg=background_colour, cursor=void_cursor)
+    lorePopup.iconbitmap(void_icon)
+
+    width, height = 600, 400
+    canvas = tk.Canvas(lorePopup, width=width, height=height, highlightthickness=0, bg=background_colour)
+    canvas.place(x=0, y=0, relwidth=1, relheight=1)
+
+    canvas.create_rectangle(0, 0, width, height, fill=background_colour, outline="")
+
+    for i in range(-100, height + 100, 30):
+        factor = max(0.0, min(1.0, (i / height))) ** 5
+        colour = interpolate_color(background_colour, foreground_colour, factor)
+        canvas.create_line(-100, i, width + 100, i + 60, fill=colour, width=60)
+
+    canvas.create_text(
+        width // 2, 40, 
+        text="VOID SCIENCE: LORE",
+        font=popup_title_font,
+        fill=active_foreground_colour,
+        justify="center"
+    )
+
+    canvas.create_text(
+        width // 2, 100,
+        text="Here I will put the lore of the app, but I will do that later!",
+        font=popup_text_font,
+        fill=active_foreground_colour,
+        width=520,
+        justify="center"
+    )
+
+    lorePopup_exit_btn = Button(lorePopup,
+        text="CLOSE WINDOW",
+        font=popup_btn_font,
+        command=lorePopup.destroy,
+        bg=foreground_colour,
+        fg=background_colour,
+        activebackground=active_background_colour,
+        activeforeground=active_foreground_colour,
+        padx=10,
+        pady=3
+    )
+
+    canvas.create_window(width // 2, 350, window=lorePopup_exit_btn)
+
+def open_info_popup(parent_root):
+    infoPopup = tk.Toplevel(parent_root)
+    infoPopup.title("HOW VOID WORKS")
+    infoPopup.geometry("600x400+350+250")
+    infoPopup.resizable(False, False)
+    infoPopup.configure(bg=background_colour, cursor=void_cursor)
+    infoPopup.iconbitmap(void_icon)
+
+    width, height = 600, 400
+    canvas = tk.Canvas(infoPopup, width=width, height=height, highlightthickness=0, bg=background_colour)
+    canvas.place(x=0, y=0, relwidth=1, relheight=1)
+
+    canvas.create_rectangle(0, 0, width, height, fill=background_colour, outline="")
+
+    for i in range(-100, height + 100, 30):
+        factor = max(0.0, min(1.0, (i / height))) ** 5
+        colour = interpolate_color(background_colour, foreground_colour, factor)
+        canvas.create_line(-100, i, width + 100, i + 60, fill=colour, width=60)
+
+    canvas.create_text(
+        width // 2, 40,
+        text="HOW THE VOID WORKS",
+        font=popup_title_font,
+        fill=active_foreground_colour,
+        justify="center"
+    )
+
+    canvas.create_text(
+        width // 2, 100, 
+        text="Here I will put the description of how the app works, but I will come back to it later!",
+        font=popup_text_font,
+        fill=active_foreground_colour,
+        width=520,
+        justify="center"
+    )
+
+    infoPopup_exit_btn = Button(infoPopup,
+        text="CLOSE WINDOW",
+        font=popup_btn_font,
+        command=infoPopup.destroy,
+        bg=foreground_colour,
+        fg=background_colour,
+        activebackground=active_background_colour,
+        activeforeground=active_foreground_colour,
+        padx=10, 
+        pady=3
+    )
+
+    canvas.create_window(width // 2, 350, window=infoPopup_exit_btn)
+
+
 menubar = tk.Menu(root)
 infoMenu = Menu(menubar, tearoff=0)
 menubar.add_cascade(label="Information", menu=infoMenu)
-infoMenu.add_command(label="Lore", command=None)
-infoMenu.add_command(label="How It Works", command=None)
+infoMenu.add_command(label="Lore", command=lambda: open_lore_popup(root))
+infoMenu.add_command(label="How It Works", command=lambda: open_info_popup(root))
 
 #Initialise Root Window
 root.config(menu=menubar)
