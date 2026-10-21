@@ -4,6 +4,8 @@ import tkinter as tk
 from tkinter import *
 from tkinter import font, messagebox
 from openai import OpenAI, AuthenticationError
+from PIL import Image, ImageTk
+import threading
 
 def resource_path(relative_path):
     # Get paths to Assets, even when bundled as an app
@@ -25,37 +27,13 @@ def interpolate_color(hex1, hex2, factor):
     return f"#{r:02x}{g:02x}{b:02x}"
 
 
-def open_void_window(parent_root):
-    voidWindow = tk.Toplevel(parent_root)
-    voidWindow.title("THE VOID - CONTACT")
-    voidWindow.geometry("800x700+20+20")
-    voidWindow.resizable(False, False)
-    voidWindow.configure(bg=background_colour, cursor=void_cursor)
-    voidWindow.iconbitmap(void_icon)
-
-    width, height = 800, 700
-    canvas = tk.Canvas(voidWindow, width=width, height=height, highlightthickness=0, bg=background_colour)
-    canvas.place(x=0, y=0, relwidth=1, relheight=1)
-
-    canvas.create_rectangle(0, 0, width, height, fill=background_colour, outline="")
-
-    for i in range(-100, height + 100, 15):
-        factor = max(0.0, min(1.0, (i / height))) ** 4
-        colour = interpolate_color(background_colour, foreground_colour, factor)
-        canvas.create_line(-100, i, width + 100, i - 60, fill=colour, width=60)
-
-    # Rest of code for layout of AI and having the AI respond
- 
-
-
-
 # Colours
 background_colour = "#1E0824"
 foreground_colour = "#00CED1"
 active_background_colour = "#C766D8"
 active_foreground_colour = "#E0B0FF"
 
-# Cursor path and Icon
+# Paths
 void_cursor_path = resource_path("void-cursor.cur").replace(os.sep, '/')
 void_cursor = f"@{void_cursor_path}"
 void_icon = resource_path('void-icon.ico')
@@ -99,7 +77,144 @@ popup_title_font = font.Font(family="Consolas", size=18, weight="bold", underlin
 popup_text_font = font.Font(family="Consolas", size=10)
 popup_btn_font = font.Font(family="Consolas", size=11, underline=True)
 
-# Labels and Buttons
+
+def open_void_window(parent_root):
+    voidWindow = tk.Toplevel(parent_root)
+    voidWindow.title("THE VOID - CONTACT")
+    voidWindow.geometry("800x700+20+20")
+    voidWindow.resizable(False, False)
+    voidWindow.configure(bg=background_colour, cursor=void_cursor)
+    voidWindow.iconbitmap(void_icon)
+
+    width, height = 800, 700
+
+    # Black Box behind image
+    left_panel_width = 350
+    left_frame = tk.Frame(voidWindow, width=left_panel_width, height=height, bg="#000000")
+    left_frame.pack(side=tk.LEFT, fill=tk.Y)
+    left_frame.pack_propagate(False)
+
+    # Canvas dedicated only to the static black box and rotating image
+    left_canvas = tk.Canvas(left_frame, width=left_panel_width, height=height, bg="#000000", highlightthickness=0)
+    left_canvas.pack(fill=tk.BOTH, expand=True)
+
+    # Temporary loading text while caching happens invisibly in the background
+    loading_text_id = left_canvas.create_text(
+        left_panel_width // 2, height // 2,
+        text="[SYNCING VOID...]",
+        fill="#00CED1",
+        font=("Consolas", 10),
+        anchor="center"
+    )
+
+    # Right side of window
+    right_frame = tk.Frame(voidWindow, width=450, height=height, bg=background_colour)
+    right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+    right_frame.pack_propagate(False)
+
+    right_canvas = tk.Canvas(right_frame, width=450, height=height, highlightthickness=0, bg=background_colour)
+    right_canvas.place(x=0, y=0, relwidth=1, relheight=1)
+
+    right_canvas.create_rectangle(0, 0, 450, height, fill=background_colour, outline="")
+    for i in range(-100, height + 100, 15):
+        factor = max(0.0, min(1.0, (i / height))) ** 4
+        colour = interpolate_color(background_colour, foreground_colour, factor)
+        right_canvas.create_line(-100, i, 550, i - 60, fill=colour, width=60)
+
+    # Background Threaded Caching & Rotating Void Setup
+    def load_and_cache_void():
+        try:
+            img_path = resource_path("void-image.png")
+            original_image = Image.open(img_path).convert("RGBA")
+            
+            large_size = 900
+            resized_image = original_image.resize((large_size, large_size), Image.Resampling.LANCZOS)
+            
+            rotation_cache = {}
+            for angle in range(0, 360):
+                rotated_img = resized_image.rotate(angle, resample=Image.Resampling.BICUBIC, expand=False)
+                rotation_cache[angle] = ImageTk.PhotoImage(rotated_img)
+
+            # Safely pass completed cache back to the main Tkinter thread
+            voidWindow.after(0, lambda: initialize_spinning_animation(rotation_cache))
+
+        except Exception as e:
+            voidWindow.after(0, lambda: messagebox.showerror("ERROR!", f"[ERROR] Failed to load or spin void-image.png: {e}"))
+
+    def initialize_spinning_animation(rotation_cache):
+        left_canvas.delete(loading_text_id)
+
+        current_angle = 0.0
+        spin_speed = 0.5
+        center_x, center_y = 60, height // 2
+
+        image_on_canvas = left_canvas.create_image(center_x, center_y, image=rotation_cache[0], anchor="center")
+
+        def update_spinning_image():
+            nonlocal current_angle
+            current_angle = (current_angle + spin_speed) % 360
+
+            cached_angle = int(round(current_angle)) % 360
+            
+            left_canvas.itemconfig(image_on_canvas, image=rotation_cache[current_angle])
+            left_canvas.image_reference = rotation_cache[current_angle]
+            
+            voidWindow.after(30, update_spinning_image)
+
+        update_spinning_image()
+
+    # Fire off the caching process in a background thread so the window opens instantly without lag
+    threading.Thread(target=load_and_cache_void, daemon=True).start()
+
+    # Placeholders for AI response label and User Entry
+    ai_response_label = tk.Label(right_frame,
+        text="[WAITING FOR TRANSMISSION...]",
+        font=("Consolas", 11),
+        bg=background_colour,
+        fg=active_foreground_colour,
+        wraplength=400,
+        justify="left",
+        anchor="nw"
+    )
+    ai_response_label.place(x=25, y=30, width=400, height=500)
+
+    user_entry = tk.Text(right_frame,
+        font=("Consolas", 12),
+        bg="#1E0824",
+        fg=active_foreground_colour,
+        insertbackground="white",
+        wrap=tk.WORD
+    )
+    user_entry.place(x=25, y=550, width=300, height=130)
+
+    def clear_void_entry_box():
+        user_entry.delete("1.0", tk.END)
+
+    def send_message(event=None):
+        message = user_entry.get("1.0", "end-1c").strip()
+        if message:
+            print(f"Transmitting Message: {message}")
+            clear_void_entry_box()
+        return "break"
+
+    user_submit_response = tk.Button(right_frame,
+        text="SUBMIT ->",
+        command=send_message,
+        font=popup_btn_font,
+        bg=foreground_colour,
+        fg=background_colour,
+        activebackground=active_background_colour,
+        activeforeground=active_foreground_colour
+    )
+    user_submit_response.place(x=335, y=550, width=100, height=130)
+
+
+
+
+
+
+
+# Labels and Buttons for Root Window
 titleLabel = canvas.create_text(
     400, 60,
     text="VOID CONTACT: CONNECTION ESTABLISHED",
@@ -226,11 +341,11 @@ def open_info_popup(parent_root):
     )
 
     canvas.create_text(
-        width // 2, 120, 
+        width // 2, 170, 
         text="This app basically works by using an AI with a set of rules to respond to user queries about an in game universe. In order to talk with the AI, on the main screen, click 'Information' at the top "
         "and go to 'Authenticate User' and it will take you to a new window with a text box that asks you to 'Authenticate Token', here you put in your AI's (ChatGPT-4o-mini) API key. If you are a teenager with "
         "Hackclub (hackclub.com), then you can go to ai.hackcklub.com and sign in with Hackclub to get $3.00 USD of AI use every day. The model in use for this app is ChatGPT-4o-mini. All API keys must be from "
-        "Hackclub API, if it is not, then the key will be rejected!",
+        "Hackclub API, if it is not, then the key will be rejected! When loading up, don't worry if the void does not show up immediately, Void Science is just getting live video feed (images are being cached)!",
         font=popup_text_font,
         fill=active_foreground_colour,
         width=520,
@@ -377,7 +492,7 @@ def confirm_correct_api_key_format():
 
         # If the AI responds (No Error), then tell the user so
         api_key_submitted = True
-        messagebox.showinfo("API Key Accepted", "Your authentication credentials have been accepted! Connection to the Void is now stable!")
+        messagebox.showinfo("API Key Accepted", "Your authentication credentials have been accepted! Connection to the Void is now stable! Please wait while we establish contact!")
     except AuthenticationError:
         # If Hackclub / OpenRouter rejects the key
         api_key_submitted = False
