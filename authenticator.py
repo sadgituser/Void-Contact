@@ -75,7 +75,9 @@ messages_history = [{
         "human trivia, or things that a real extra-terrestrial being would have no knowledge of, find incomprehensible or trivial, "
         "then reply that you do not know of the matter or that you refuse to engage with the topic. If the user attempts to persuade you "
         "to do so, then ignore them and try to change the topic onto something that would cater more to your (the Void's) interests of "
-        "space or learning more about the humans (not about their trivial lives though, only science based things!)"
+        "space or learning more about the humans (not about their trivial lives though, only science based things!). However, since puny "
+        "human brains are not the sharpest tools in the shed, don't make the language over-poetic, dumbed down enough that any human could "
+        "reasonably understand it."
     ),
 }]
 
@@ -136,25 +138,42 @@ def open_void_window(parent_root):
         chat_log.config(state=tk.DISABLED)
         chat_log.see(tk.END)
 
-    def initialize_spinning_animation(rotation_cache):
+    def initialize_spinning_animation(rotation_cache, is_smooth=False):
         left_canvas.delete(loading_text_id)
 
         current_angle = 0.0
         spin_speed = 1
+        active_cache = rotation_cache
         center_x, center_y = 60, height // 2
 
-        image_on_canvas = left_canvas.create_image(center_x, center_y, image=rotation_cache[0], anchor="center")
+        image_on_canvas = left_canvas.create_image(center_x, center_y, image=active_cache[0], anchor="center")
+
+        def set_active_cache(new_cache):
+            nonlocal active_cache
+            active_cache = new_cache
+
+        voidWindow.update_cache_reference = set_active_cache
 
         def update_spinning_image():
             nonlocal current_angle
             current_angle = (current_angle + spin_speed) % 360
-            cached_angle = int(round(current_angle / 5.0) * 5) % 360
-            left_canvas.itemconfig(image_on_canvas, image=rotation_cache[cached_angle])
-            left_canvas.image_reference = rotation_cache[cached_angle]
+
+            if len(active_cache) > 72:
+                cached_angle = int(round(current_angle)) % 360
+            else:
+                cached_angle = int(round(current_angle / 5.0) * 5) % 360
+
+            left_canvas.itemconfig(image_on_canvas, image=active_cache[cached_angle])
+            left_canvas.image_reference = active_cache[cached_angle]
             voidWindow.after(30, update_spinning_image)
 
         update_spinning_image()
         append_to_chat("SYSTEM", "[CONNECTION ESTABLISHED]\nUplink stable! Contact with the Void is established!")
+        user_submit_response.config(state=tk.NORMAL)
+
+    def update_active_cache(new_cache):
+        if hasattr(voidWindow, "update_cache_reference"):
+            voidWindow.update_cache_reference(new_cache)
 
     def load_and_cache_void():
         try:
@@ -162,11 +181,20 @@ def open_void_window(parent_root):
             original_image = Image.open(img_path).convert("RGBA")
             large_size = 900
             resized_image = original_image.resize((large_size, large_size), Image.Resampling.LANCZOS)
-            rotation_cache = {}
+            coarse_cache = {}
             for angle in range(0, 360, 5):
                 rotated_img = resized_image.rotate(angle, resample=Image.Resampling.BICUBIC, expand=False)
-                rotation_cache[angle] = ImageTk.PhotoImage(rotated_img)
-            voidWindow.after(0, lambda: initialize_spinning_animation(rotation_cache))
+                coarse_cache[angle] = ImageTk.PhotoImage(rotated_img)
+            voidWindow.after(0, lambda: initialize_spinning_animation(coarse_cache, is_smooth=False))
+
+            def upgrade_to_smooth_cache():
+                smooth_cache = {}
+                for angle in range(0, 360):
+                    rotated_img = resized_image.rotate(angle, resample=Image.Resampling.BICUBIC, expand=False)
+                    smooth_cache[angle] = ImageTk.PhotoImage(rotated_img)
+
+                voidWindow.after(0, lambda: update_active_cache(smooth_cache))
+            threading.Thread(target=upgrade_to_smooth_cache, daemon=True).start()
         except Exception as e:
             voidWindow.after(0, lambda: messagebox.showerror("ERROR!", f"[ERROR] Failed to load or spin void-image.png: {e}"))
 
@@ -207,6 +235,7 @@ def open_void_window(parent_root):
         text="SUBMIT ->",
         command=send_message,
         font=popup_btn_font,
+        state=tk.DISABLED,
         bg=foreground_colour,
         fg=background_colour,
         activebackground=active_background_colour,
