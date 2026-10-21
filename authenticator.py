@@ -2,7 +2,8 @@ import os
 import sys
 import tkinter as tk
 from tkinter import *
-from tkinter import font
+from tkinter import font, messagebox
+from openai import OpenAI, AuthenticationError
 
 def resource_path(relative_path):
     # Get paths to Assets, even when bundled as an app
@@ -23,6 +24,31 @@ def interpolate_color(hex1, hex2, factor):
     b = int(b1 + (b2 - b1) * factor)
     return f"#{r:02x}{g:02x}{b:02x}"
 
+
+def open_void_window(parent_root):
+    voidWindow = tk.Toplevel(parent_root)
+    voidWindow.title("THE VOID - CONTACT")
+    voidWindow.geometry("800x700+20+20")
+    voidWindow.resizable(False, False)
+    voidWindow.configure(bg=background_colour, cursor=void_cursor)
+    voidWindow.iconbitmap(void_icon)
+
+    width, height = 800, 700
+    canvas = tk.Canvas(voidWindow, width=width, height=height, highlightthickness=0, bg=background_colour)
+    canvas.place(x=0, y=0, relwidth=1, relheight=1)
+
+    canvas.create_rectangle(0, 0, width, height, fill=background_colour, outline="")
+
+    for i in range(-100, height + 100, 15):
+        factor = max(0.0, min(1.0, (i / height))) ** 4
+        colour = interpolate_color(background_colour, foreground_colour, factor)
+        canvas.create_line(-100, i, width + 100, i - 60, fill=colour, width=60)
+
+    # Rest of code for layout of AI and having the AI respond
+ 
+
+
+
 # Colours
 background_colour = "#1E0824"
 foreground_colour = "#00CED1"
@@ -33,6 +59,10 @@ active_foreground_colour = "#E0B0FF"
 void_cursor_path = resource_path("void-cursor.cur").replace(os.sep, '/')
 void_cursor = f"@{void_cursor_path}"
 void_icon = resource_path('void-icon.ico')
+
+#Default API Key
+api_key = ""
+api_key_submitted = False
 
 # Root Window Settings
 root = tk.Tk()
@@ -69,7 +99,7 @@ popup_title_font = font.Font(family="Consolas", size=18, weight="bold", underlin
 popup_text_font = font.Font(family="Consolas", size=10)
 popup_btn_font = font.Font(family="Consolas", size=11, underline=True)
 
-# Labels and Button
+# Labels and Buttons
 titleLabel = canvas.create_text(
     400, 60,
     text="VOID CONTACT: CONNECTION ESTABLISHED",
@@ -86,6 +116,15 @@ descriptionLabel = canvas.create_text(
     width=720,
     justify="center"
 )
+continueRootButton = Button(root,
+    text="CONTINUE TO VOID",
+    font=buttonFont,
+    command=lambda: [open_void_window(root)],
+    bg=foreground_colour,
+    fg=background_colour,
+    activebackground=active_background_colour,
+    activeforeground=active_foreground_colour,
+)
 closeRootButton = Button(root,
     text="CLOSE CONNECTION",
     font=buttonFont,
@@ -96,8 +135,11 @@ closeRootButton = Button(root,
     activeforeground=active_foreground_colour
 )
 
-# Create Canvas
-canvas.create_window(400, 500, window=closeRootButton)
+# Create Canvas Windows (Initialise Widgets) - Assign Continue Button to a Function
+def instantiate_continue_button():
+    canvas.create_window(400, 450, window=continueRootButton, tags="continue_button")
+
+canvas.create_window(400, 530, window=closeRootButton)
 
 
 def open_lore_popup(parent_root):
@@ -185,11 +227,10 @@ def open_info_popup(parent_root):
 
     canvas.create_text(
         width // 2, 120, 
-        text="This app basically works by using an AI with a set of rules to respond to user queries about an in game universe. In order to talk with the AI, on the main screen, click 'Information' at the top and go to 'Authenticate User' " \
-        "and it will take you to a new window with a text box that asks you for an 'Access Token', here you put in your AI's API key. If you are a teenager with Hackclub (hackclub.com), then you can go to " \
-        "ai.hackcklub.com and sign in with Hackclub to get $3.00 USD of AI use every day. " \
-        "" \
-        "",
+        text="This app basically works by using an AI with a set of rules to respond to user queries about an in game universe. In order to talk with the AI, on the main screen, click 'Information' at the top "
+        "and go to 'Authenticate User' and it will take you to a new window with a text box that asks you to 'Authenticate Token', here you put in your AI's (ChatGPT-4o-mini) API key. If you are a teenager with "
+        "Hackclub (hackclub.com), then you can go to ai.hackcklub.com and sign in with Hackclub to get $3.00 USD of AI use every day. The model in use for this app is ChatGPT-4o-mini. All API keys must be from "
+        "Hackclub API, if it is not, then the key will be rejected!",
         font=popup_text_font,
         fill=active_foreground_colour,
         width=520,
@@ -211,6 +252,15 @@ def open_info_popup(parent_root):
     canvas.create_window(width // 2, 350, window=infoPopup_exit_btn)
 
 def open_authenticate_popup(parent_window):
+        
+    def handle_api_submission():
+        global api_key
+        global api_key_submitted
+        api_key = api_entry.get().strip()
+        api_key_submitted = True
+        confirm_correct_api_key_format()
+
+
     authPopup = tk.Toplevel(parent_window)
     authPopup.title("AUTHENTICATE USER")
     authPopup.geometry("600x400+400+300")
@@ -258,7 +308,17 @@ def open_authenticate_popup(parent_window):
         pady=3
     )
 
+    api_var = tk.StringVar()
+
+    def on_key_change(*args):
+        global api_key_submitted
+        if api_key_submitted:
+            api_key_submitted = False
+
+    api_var.trace_add("write", on_key_change)
+
     api_entry = Entry(authPopup,
+        textvariable=api_var,
         font=descriptionFont,
         bg="#1E0824",
         fg=active_foreground_colour,
@@ -269,7 +329,7 @@ def open_authenticate_popup(parent_window):
     api_confirm = Button(authPopup,
         text="CONFIRM TOKEN",
         font=popup_btn_font,
-        command = None,
+        command=lambda: [handle_api_submission(), authPopup.destroy()],
         bg=foreground_colour,
         fg=background_colour,
         activebackground=active_background_colour,
@@ -283,7 +343,49 @@ def open_authenticate_popup(parent_window):
     canvas.create_window(width // 2, 350, window=auth_exit_btn)
 
 
+def show_continue_button():
+    if api_key_submitted:
+        if not canvas.find_withtag("continue_button"):
+            instantiate_continue_button()
+    else:
+        canvas.delete("continue_button")
 
+    root.after(300, show_continue_button)
+
+show_continue_button()
+
+
+def confirm_correct_api_key_format():
+    global api_key_submitted
+
+    # Check to see if API Key is in valid Hackclub format 
+    if not api_key.startswith("sk-hc-v1-"):
+        api_key_submitted = False
+        messagebox.showerror("Key Rejected", "Your API Key format is not the right Hackclub format ('sk-hc-v1-'). Check the 'How It Works' tab for more inforamtion!")
+        return
+
+    try:
+        # Point OpenAI client to Hackclubs Proxy
+        client = OpenAI(base_url="https://ai.hackclub.com/proxy/v1", api_key=api_key)
+
+        # Send a low-cost 'ping' to the AI to see if it responds
+        response = client.chat.completions.create(
+            model="openai/gpt-4o-mini",
+            messages=[{"role": "user", "content": "ping"}],
+            max_tokens = 5
+        )
+
+        # If the AI responds (No Error), then tell the user so
+        api_key_submitted = True
+        messagebox.showinfo("API Key Accepted", "Your authentication credentials have been accepted! Connection to the Void is now stable!")
+    except AuthenticationError:
+        # If Hackclub / OpenRouter rejects the key
+        api_key_submitted = False
+        messagebox.showerror("API Key Rejected - Authentication Failed", "Your authentication credentials were rejected by the server. Please check that your details are correct!")
+    except Exception as e:
+        # Triggered if there is another error (general)
+        api_key_submitted = False
+        messagebox.showerror("Connection Error", f"Could not connect to the Void. Error Code: {str(e)}")
 
 
 
