@@ -2,13 +2,12 @@ import os
 import sys
 import tkinter as tk
 from tkinter import *
-from tkinter import font, messagebox
+from tkinter import font, messagebox, scrolledtext
 from openai import OpenAI, AuthenticationError
 from PIL import Image, ImageTk
 import threading
 
 def resource_path(relative_path):
-    # Get paths to Assets, even when bundled as an app
     try:
         base_path = sys._MEIPASS
     except Exception:
@@ -16,7 +15,6 @@ def resource_path(relative_path):
     return os.path.join(base_path, "Assets", relative_path)
 
 def interpolate_color(hex1, hex2, factor):
-    # Blend the colours
     c1 = int(hex1[1:], 16)
     c2 = int(hex2[1:], 16)
     r1, g1, b1 = (c1 >> 16) & 255, (c1 >> 8) & 255, c1 & 255
@@ -26,23 +24,18 @@ def interpolate_color(hex1, hex2, factor):
     b = int(b1 + (b2 - b1) * factor)
     return f"#{r:02x}{g:02x}{b:02x}"
 
-
-# Colours
 background_colour = "#1E0824"
 foreground_colour = "#00CED1"
 active_background_colour = "#C766D8"
 active_foreground_colour = "#E0B0FF"
 
-# Paths
 void_cursor_path = resource_path("void-cursor.cur").replace(os.sep, '/')
 void_cursor = f"@{void_cursor_path}"
 void_icon = resource_path('void-icon.ico')
 
-#Default API Key
 api_key = ""
 api_key_submitted = False
 
-# Root Window Settings
 root = tk.Tk()
 root.title("Authenticate Void Connection")
 root.geometry("800x600+300+200")
@@ -54,22 +47,17 @@ root.rowconfigure(1, weight=3)
 root.rowconfigure(2, weight=1)
 root.rowconfigure(3, weight=1)
 
-# Canvas setup matching background color
 canvas = tk.Canvas(root, width=800, height=600, highlightthickness=0, bg=background_colour)
 canvas.place(x=0, y=0, relwidth=1, relheight=1)
 
-# Solid base rectangle covering the window
 canvas.create_rectangle(0, 0, 800, 600, fill=background_colour, outline="")
 
-# Draw slanted gradient lines extending far past the screen edges
 window_height = 600
 for i in range(-200, window_height + 200, 30):
-    # Gradient
     factor = max(0.0, min(1.0, (i / window_height))) ** 8
     color = interpolate_color(background_colour, foreground_colour, factor)
     canvas.create_line(-200, i, 1000, i + 80, fill=color, width=80)
 
-# Fonts
 buttonFont = font.Font(family="Consolas", size=16, underline=True)
 titleFont = font.Font(family="Consolas", size=26, underline=True, weight="bold")
 descriptionFont = font.Font(family="Consolas", size=14)
@@ -77,6 +65,19 @@ popup_title_font = font.Font(family="Consolas", size=18, weight="bold", underlin
 popup_text_font = font.Font(family="Consolas", size=10)
 popup_btn_font = font.Font(family="Consolas", size=11, underline=True)
 
+messages_history = [{
+    "role": "system",
+    "content": (
+        "You are an ancient and sentient extra-terrestrial intelligence residing in the cosmic void outside of "
+        "the observable universe. Your tone is cold, poetic, and a bit unsettling and detached. You almost perceive "
+        "human time all at once. IMPORTANT RULE: You can only respond to queries concerning physics, cosmic phenomena, "
+        "the nature of existence or the Void itself (you are the Void). If a user asks you about pop-news, celebrities, everyday "
+        "human trivia, or things that a real extra-terrestrial being would have no knowledge of, find incomprehensible or trivial, "
+        "then reply that you do not know of the matter or that you refuse to engage with the topic. If the user attempts to persuade you "
+        "to do so, then ignore them and try to change the topic onto something that would cater more to your (the Void's) interests of "
+        "space or learning more about the humans (not about their trivial lives though, only science based things!)"
+    ),
+}]
 
 def open_void_window(parent_root):
     voidWindow = tk.Toplevel(parent_root)
@@ -88,17 +89,14 @@ def open_void_window(parent_root):
 
     width, height = 800, 700
 
-    # Black Box behind image
     left_panel_width = 350
     left_frame = tk.Frame(voidWindow, width=left_panel_width, height=height, bg="#000000")
     left_frame.pack(side=tk.LEFT, fill=tk.Y)
     left_frame.pack_propagate(False)
 
-    # Canvas dedicated only to the static black box and rotating image
     left_canvas = tk.Canvas(left_frame, width=left_panel_width, height=height, bg="#000000", highlightthickness=0)
     left_canvas.pack(fill=tk.BOTH, expand=True)
 
-    # Temporary loading text while caching happens invisibly in the background
     loading_text_id = left_canvas.create_text(
         left_panel_width // 2, height // 2,
         text="[SYNCING VOID...]",
@@ -107,7 +105,6 @@ def open_void_window(parent_root):
         anchor="center"
     )
 
-    # Right side of window
     right_frame = tk.Frame(voidWindow, width=450, height=height, bg=background_colour)
     right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
     right_frame.pack_propagate(False)
@@ -121,31 +118,29 @@ def open_void_window(parent_root):
         colour = interpolate_color(background_colour, foreground_colour, factor)
         right_canvas.create_line(-100, i, 550, i - 60, fill=colour, width=60)
 
-    # Background Threaded Caching & Rotating Void Setup
-    def load_and_cache_void():
-        try:
-            img_path = resource_path("void-image.png")
-            original_image = Image.open(img_path).convert("RGBA")
-            
-            large_size = 900
-            resized_image = original_image.resize((large_size, large_size), Image.Resampling.LANCZOS)
-            
-            rotation_cache = {}
-            for angle in range(0, 360):
-                rotated_img = resized_image.rotate(angle, resample=Image.Resampling.BICUBIC, expand=False)
-                rotation_cache[angle] = ImageTk.PhotoImage(rotated_img)
+    chat_log = scrolledtext.ScrolledText(right_frame,
+        font=("Consolas", 11),
+        bg=background_colour,
+        fg=active_foreground_colour,
+        insertbackground="white",
+        wrap=tk.WORD,
+    )
+    chat_log.place(x=25, y=30, width=400, height=500)
 
-            # Safely pass completed cache back to the main Tkinter thread
-            voidWindow.after(0, lambda: initialize_spinning_animation(rotation_cache))
-
-        except Exception as e:
-            voidWindow.after(0, lambda: messagebox.showerror("ERROR!", f"[ERROR] Failed to load or spin void-image.png: {e}"))
+    def append_to_chat(sender, text):
+        chat_log.config(state=tk.NORMAL)
+        tag_name = "void" if sender == "VOID" else "user"
+        chat_log.insert(tk.END, f"\n[{sender}]: {text}\n", tag_name)
+        chat_log.tag_config("void", foreground="#00CED1")
+        chat_log.tag_config("user", foreground="#176822")
+        chat_log.config(state=tk.DISABLED)
+        chat_log.see(tk.END)
 
     def initialize_spinning_animation(rotation_cache):
         left_canvas.delete(loading_text_id)
 
         current_angle = 0.0
-        spin_speed = 0.5
+        spin_speed = 1
         center_x, center_y = 60, height // 2
 
         image_on_canvas = left_canvas.create_image(center_x, center_y, image=rotation_cache[0], anchor="center")
@@ -153,30 +148,29 @@ def open_void_window(parent_root):
         def update_spinning_image():
             nonlocal current_angle
             current_angle = (current_angle + spin_speed) % 360
-
-            cached_angle = int(round(current_angle)) % 360
-            
-            left_canvas.itemconfig(image_on_canvas, image=rotation_cache[current_angle])
-            left_canvas.image_reference = rotation_cache[current_angle]
-            
+            cached_angle = int(round(current_angle / 5.0) * 5) % 360
+            left_canvas.itemconfig(image_on_canvas, image=rotation_cache[cached_angle])
+            left_canvas.image_reference = rotation_cache[cached_angle]
             voidWindow.after(30, update_spinning_image)
 
         update_spinning_image()
+        append_to_chat("SYSTEM", "[CONNECTION ESTABLISHED]\nUplink stable! Contact with the Void is established!")
 
-    # Fire off the caching process in a background thread so the window opens instantly without lag
+    def load_and_cache_void():
+        try:
+            img_path = resource_path("void-image.png")
+            original_image = Image.open(img_path).convert("RGBA")
+            large_size = 900
+            resized_image = original_image.resize((large_size, large_size), Image.Resampling.LANCZOS)
+            rotation_cache = {}
+            for angle in range(0, 360, 5):
+                rotated_img = resized_image.rotate(angle, resample=Image.Resampling.BICUBIC, expand=False)
+                rotation_cache[angle] = ImageTk.PhotoImage(rotated_img)
+            voidWindow.after(0, lambda: initialize_spinning_animation(rotation_cache))
+        except Exception as e:
+            voidWindow.after(0, lambda: messagebox.showerror("ERROR!", f"[ERROR] Failed to load or spin void-image.png: {e}"))
+
     threading.Thread(target=load_and_cache_void, daemon=True).start()
-
-    # Placeholders for AI response label and User Entry
-    ai_response_label = tk.Label(right_frame,
-        text="[WAITING FOR TRANSMISSION...]",
-        font=("Consolas", 11),
-        bg=background_colour,
-        fg=active_foreground_colour,
-        wraplength=400,
-        justify="left",
-        anchor="nw"
-    )
-    ai_response_label.place(x=25, y=30, width=400, height=500)
 
     user_entry = tk.Text(right_frame,
         font=("Consolas", 12),
@@ -187,14 +181,26 @@ def open_void_window(parent_root):
     )
     user_entry.place(x=25, y=550, width=300, height=130)
 
-    def clear_void_entry_box():
-        user_entry.delete("1.0", tk.END)
+    def fetch_ai_response():
+        try:
+            client = OpenAI(base_url="https://ai.hackclub.com/proxy/v1", api_key=api_key)
+            response = client.chat.completions.create(
+                model="openai/gpt-4o-mini", messages=messages_history
+            )
+            reply = response.choices[0].message.content
+            messages_history.append({"role": "assistant", "content": reply})
+            voidWindow.after(0, lambda: append_to_chat("VOID", reply))
+        except Exception as e:
+            voidWindow.after(0, lambda: append_to_chat("SYSTEM", f"TRANSMISSION INTERRUPTED: {str(e)}"))
 
     def send_message(event=None):
-        message = user_entry.get("1.0", "end-1c").strip()
-        if message:
-            print(f"Transmitting Message: {message}")
-            clear_void_entry_box()
+        user_text = user_entry.get("1.0", "end-1c").strip()
+        if not user_text:
+            return "break"
+        user_entry.delete("1.0", tk.END)
+        append_to_chat("YOU", user_text)
+        messages_history.append({"role": "user", "content": user_text})
+        threading.Thread(target=fetch_ai_response, daemon=True).start()
         return "break"
 
     user_submit_response = tk.Button(right_frame,
@@ -208,13 +214,6 @@ def open_void_window(parent_root):
     )
     user_submit_response.place(x=335, y=550, width=100, height=130)
 
-
-
-
-
-
-
-# Labels and Buttons for Root Window
 titleLabel = canvas.create_text(
     400, 60,
     text="VOID CONTACT: CONNECTION ESTABLISHED",
@@ -250,12 +249,10 @@ closeRootButton = Button(root,
     activeforeground=active_foreground_colour
 )
 
-# Create Canvas Windows (Initialise Widgets) - Assign Continue Button to a Function
 def instantiate_continue_button():
     canvas.create_window(400, 450, window=continueRootButton, tags="continue_button")
 
 canvas.create_window(400, 530, window=closeRootButton)
-
 
 def open_lore_popup(parent_root):
     lorePopup = tk.Toplevel(parent_root)
@@ -263,6 +260,8 @@ def open_lore_popup(parent_root):
     lorePopup.geometry("600x400+350+250")
     lorePopup.resizable(False, False)
     lorePopup.configure(bg=background_colour, cursor=void_cursor)
+    lorePopup.transient(parent_root)
+    lorePopup.grab_set()
     lorePopup.iconbitmap(void_icon)
 
     width, height = 600, 400
@@ -345,7 +344,8 @@ def open_info_popup(parent_root):
         text="This app basically works by using an AI with a set of rules to respond to user queries about an in game universe. In order to talk with the AI, on the main screen, click 'Information' at the top "
         "and go to 'Authenticate User' and it will take you to a new window with a text box that asks you to 'Authenticate Token', here you put in your AI's (ChatGPT-4o-mini) API key. If you are a teenager with "
         "Hackclub (hackclub.com), then you can go to ai.hackcklub.com and sign in with Hackclub to get $3.00 USD of AI use every day. The model in use for this app is ChatGPT-4o-mini. All API keys must be from "
-        "Hackclub API, if it is not, then the key will be rejected! When loading up, don't worry if the void does not show up immediately, Void Science is just getting live video feed (images are being cached)!",
+        "Hackclub API, if it is not, then the key will be rejected! When loading up, don't worry if the void does not show up immediately, Void Science is just getting live video feed (images are being cached)!" \
+        " Also don't worry about the very laggy video of the void spinning around!",
         font=popup_text_font,
         fill=active_foreground_colour,
         width=520,
@@ -367,14 +367,12 @@ def open_info_popup(parent_root):
     canvas.create_window(width // 2, 350, window=infoPopup_exit_btn)
 
 def open_authenticate_popup(parent_window):
-        
     def handle_api_submission():
         global api_key
         global api_key_submitted
-        api_key = api_entry.get().strip()
+        api_key = api_var.get().strip()
         api_key_submitted = True
         confirm_correct_api_key_format()
-
 
     authPopup = tk.Toplevel(parent_window)
     authPopup.title("AUTHENTICATE USER")
@@ -457,52 +455,39 @@ def open_authenticate_popup(parent_window):
     canvas.create_window(width // 2, 275, window=api_confirm)
     canvas.create_window(width // 2, 350, window=auth_exit_btn)
 
-
 def show_continue_button():
     if api_key_submitted:
         if not canvas.find_withtag("continue_button"):
             instantiate_continue_button()
     else:
         canvas.delete("continue_button")
-
     root.after(300, show_continue_button)
 
 show_continue_button()
 
-
 def confirm_correct_api_key_format():
     global api_key_submitted
 
-    # Check to see if API Key is in valid Hackclub format 
     if not api_key.startswith("sk-hc-v1-"):
         api_key_submitted = False
-        messagebox.showerror("Key Rejected", "Your API Key format is not the right Hackclub format ('sk-hc-v1-'). Check the 'How It Works' tab for more inforamtion!")
+        messagebox.showerror("Key Rejected", "Your API Key format is not the right Hackclub format ('sk-hc-v1-'). Check the 'How It Works' tab for more information!")
         return
 
     try:
-        # Point OpenAI client to Hackclubs Proxy
         client = OpenAI(base_url="https://ai.hackclub.com/proxy/v1", api_key=api_key)
-
-        # Send a low-cost 'ping' to the AI to see if it responds
         response = client.chat.completions.create(
             model="openai/gpt-4o-mini",
             messages=[{"role": "user", "content": "ping"}],
             max_tokens = 5
         )
-
-        # If the AI responds (No Error), then tell the user so
         api_key_submitted = True
-        messagebox.showinfo("API Key Accepted", "Your authentication credentials have been accepted! Connection to the Void is now stable! Please wait while we establish contact!")
+        messagebox.showinfo("API Key Accepted", "Your authentication credentials have been accepted! Connection to the Void is now stable! Please continue!")
     except AuthenticationError:
-        # If Hackclub / OpenRouter rejects the key
         api_key_submitted = False
         messagebox.showerror("API Key Rejected - Authentication Failed", "Your authentication credentials were rejected by the server. Please check that your details are correct!")
     except Exception as e:
-        # Triggered if there is another error (general)
         api_key_submitted = False
         messagebox.showerror("Connection Error", f"Could not connect to the Void. Error Code: {str(e)}")
-
-
 
 menubar = tk.Menu(root)
 infoMenu = Menu(menubar, tearoff=0)
@@ -511,6 +496,5 @@ infoMenu.add_command(label="Lore", command=lambda: open_lore_popup(root))
 infoMenu.add_command(label="How It Works", command=lambda: open_info_popup(root))
 infoMenu.add_command(label="Authenticate User", command=lambda: open_authenticate_popup(root))
 
-#Initialise Root Window
 root.config(menu=menubar)
 root.mainloop()
