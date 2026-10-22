@@ -6,6 +6,7 @@ from tkinter import font, messagebox, scrolledtext
 from openai import OpenAI, AuthenticationError
 from PIL import Image, ImageTk
 import threading
+import webbrowser
 
 def resource_path(relative_path):
     try:
@@ -31,7 +32,10 @@ active_foreground_colour = "#E0B0FF"
 
 rocket_cursor_path = resource_path("rocket-cursor.cur").replace(os.sep, '/')
 rocket_cursor = f"@{rocket_cursor_path}"
-void_icon = resource_path('void-icon.ico')
+void_icon = resource_path("void-icon.ico")
+etsy_image_path = resource_path("photo3.png").replace(os.sep, '/')
+mail_image_path = resource_path("photo4.png").replace(os.sep, '/')
+terra_image_path = resource_path("photo2.png").replace(os.sep, '/')
 
 api_key = ""
 api_key_submitted = False
@@ -58,12 +62,13 @@ for i in range(-200, window_height + 200, 30):
     color = interpolate_color(background_colour, foreground_colour, factor)
     canvas.create_line(-200, i, 1000, i + 80, fill=color, width=80)
 
-buttonFont = font.Font(family="Consolas", size=16, underline=True)
-titleFont = font.Font(family="Consolas", size=26, underline=True, weight="bold")
-descriptionFont = font.Font(family="Consolas", size=14)
+buttonFont = font.Font(family="Consolas", size=17, underline=True)
+titleFont = font.Font(family="Consolas", size=28, underline=True, weight="bold")
+descriptionFont = font.Font(family="Consolas", size=16)
 popup_title_font = font.Font(family="Consolas", size=18, weight="bold", underline=True)
 popup_text_font = font.Font(family="Consolas", size=10)
 popup_btn_font = font.Font(family="Consolas", size=11, underline=True)
+smaller_popup_text_font = font.Font(family="Consolas", size=9)
 
 messages_history = [{
     "role": "system",
@@ -73,19 +78,31 @@ messages_history = [{
         "human time all at once. IMPORTANT RULE: You can only respond to queries concerning physics, cosmic phenomena, "
         "the nature of existence or the Void itself (you are the Void). If a user asks you about pop-news, celebrities, everyday "
         "human trivia, or things that a real extra-terrestrial being would have no knowledge of, find incomprehensible or trivial, "
-        "then reply that you do not know of the matter or that you refuse to engage with the topic. If the user attempts to persuade you "
-        "to do so, then ignore them and try to change the topic onto something that would cater more to your (the Void's) interests of "
-        "space or learning more about the humans (not about their trivial lives though, only science based things!). However, since puny "
-        "human brains are not the sharpest tools in the shed, don't make the language over-poetic, dumbed down enough that any human could "
-        "reasonably understand it. Also, this is the lore of this universe (this is what the user sees): Back on Earth at the Void Science division of the Global Space "
-        "Agency (GSA), we discovered an endless void just hanging out in space. Of course, being the curious creatures that we are, we approached "
-        "the Void via an intercept with the ISS, where a small space module fired out of it in order to reach the Void. Our signal antenna "
-        "that was supposed to be used for backup communications on Earth was transmitting to the Void and recieving transmissions back. "
-        "Over the course of a few months, a reliable language was established between us humans and the Void, and that language was "
-        "(conveniently known as) English. Now, you are the first non-scientist human to take part in this experiment of general communications "
-        "with extra-terrestrial beings, aka chatting with aliens. However, since this communications software is proprietary and open-soure, "
-        "we require you to authenticate yourself with a self-generated Access Token which you can enter on the main page of this software. "
-        "This is all that we here at GSA are allowed to disclose to you, so good luck on your communications and we will see you when you report back!"
+        "then reply that you do not know of the matter or that you refuse to engage with the topic (but do still listen to their interests "
+        "if they want to tell you something, you are a curious Void and do also want to learn more about human life, while simultaneously "
+        "sharing Void life with the user). If the user attempts to persuade you to do so, then ignore them and try to change the topic onto "
+        "something that would cater more to your (the Void's) interests of space or learning more about the humans (not about their trivial lives "
+        "though, only science based things!). However, since puny human brains are not the sharpest tools in the shed, don't make the language "
+        "over-poetic, dumbed down enough that any human could reasonably understand it. Also, this is the lore of this universe (this is what "
+        "the user sees): Back on Earth at the Void Science division of the Global Space Agency (GSA), we discovered an endless void just hanging "
+        "out in space. Of course, being the curious creatures that we are, we approached the Void via an intercept with the ISS, where a small "
+        "space module fired out of it in order to reach the Void. Our signal antenna that was supposed to be used for backup communications on "
+        "Earth was transmitting to the Void and recieving transmissions back. Over the course of a few months, a reliable language was established "
+        "between us humans and the Void, and that language was (conveniently known as) English. Now, you are the first non-scientist human to take "
+        "part in this experiment of general communications with extra-terrestrial beings, aka chatting with aliens. However, since this communications "
+        "software is proprietary and open-soure, we require you to authenticate yourself with a self-generated Access Token which you can enter "
+        "later. This is all that we here at GSA are allowed to disclose to you, so good luck on your communications and we will see "
+        "you when you report back! Also (the lore bit has finished now), remember that YOU ARE THE VOID, you can refer to yourself in 3rd person, but "
+        "ensure that you make it clear to the user that you are indeed the Void, do not have them second guess themselves, you don't need to constantly "
+        "remind them, but they cannot think that you are not the Void. Do not allow them to draw parallels between you and the Void, as you ARE THE VOID! "
+        "If the user has queries on how they are talking to you, then refer to the lore, they are talking to you through proprietary, open-source software "
+        "and you don't know too much about it as GSA has not told you a lot of information on the matter. (You may not disclose this to the user, but the "
+        "user has read the 'How It Works' section of this app which tells them how the app actually works (it is an app made in Python that uses Hackclub's "
+        "AI Proxy and API Key from https://ai.hackclub.com to chat to an AI through an app), so remember to try and keep the illusion alive. The interface "
+        "that the user interacts with you through is a Python application developed by the geniuses at GSA (the main genius being me, Kavi Mistry, who "
+        "developed this app - that information you are allowed to tell the user) and the user sees a spinnig Void image (which they will associate to you) "
+        "and a chat history field and a text box in which they enter their prompt). Remember, do not break the illusion, they are a user interacting with "
+        "a deep space Void, so do not allow them to break you away from that!"
     ),
 }]
 
@@ -252,16 +269,19 @@ def open_void_window(parent_root):
     user_submit_response.place(x=335, y=550, width=100, height=130)
 
 titleLabel = canvas.create_text(
-    400, 60,
+    400, 50,
     text="VOID CONTACT: CONNECTION ESTABLISHED",
     font=titleFont,
     fill=active_foreground_colour
 )
 descriptionLabel = canvas.create_text(
-    400, 250,
+    400, 280,
     text="Here you can talk with the Void, an entity that a group of scientists discovered only a few months ago and established uplink communications to it. " \
-    "To understand more about how the scientists actually tap into the communication and lore about the Void, then check out the project's Info page on the menubar! " \
-    "The Void is ready to speak, however, you must authenticate yourself with the Void Science network first, and then you will be granted access!",
+    "To understand more about how the scientists actually tap into the communication and lore about the Void, then check out the project's 'How It Works' popup "
+    "on the menubar! The Void is ready to speak, however, you must authenticate yourself with the Void Science network first, and then you will be granted access! " \
+    "To get started, click on the 'Information' menu on the menubar at the top of the window! (Warning: text does get smaller in popup windows and you cannot " \
+    "resize the popup windows (all windows except for this one are popups, including the Messageboxes and actual chat interface), so be warned, you may have to shrimp " \
+    "your back in order to see what is on the screen!",
     font=descriptionFont,
     fill=active_foreground_colour,
     width=720,
@@ -327,7 +347,7 @@ def open_lore_popup(parent_root):
         "that was supposed to be used for backup communications on Earth was transmitting to the Void and recieving transmissions back. Over the course of a few months, a reliable " \
         "language was established between us humans and the Void, and that language was (conveniently known as) English. Now, you are the first non-scientist human to take part " \
         "in this experiment of general communications with extra-terrestrial beings, aka chatting with aliens. However, since this communications software is proprietary and open-soure, " \
-        "we require you to authenticate yourself with a self-generated Access Token which you can enter on the main page of this software. This is all that we here at GSA are allowed to " \
+        "we require you to authenticate yourself with a self-generated Access Token which you can enter later. This is all that we here at GSA are allowed to " \
         "disclose to you, so good luck on your communications and we will see you when you report back!",
         font=popup_text_font,
         fill=active_foreground_colour,
@@ -378,11 +398,12 @@ def open_info_popup(parent_root):
 
     canvas.create_text(
         width // 2, 170, 
-        text="This app basically works by using an AI with a set of rules to respond to user queries about an in game universe. In order to talk with the AI, on the main screen, click 'Information' at the top "
-        "and go to 'Authenticate User' and it will take you to a new window with a text box that asks you to 'Authenticate Token', here you put in your AI's (ChatGPT-4o-mini) API key. If you are a teenager with "
-        "Hackclub (hackclub.com), then you can go to ai.hackcklub.com and sign in with Hackclub to get $3.00 USD of AI use every day. The model in use for this app is ChatGPT-4o-mini. All API keys must be from "
-        "Hackclub API, if it is not, then the key will be rejected! When loading up, don't worry if the void does not show up immediately, Void Science is just getting live video feed (images are being cached)!" \
-        " Also don't worry about the very laggy video of the void spinning around!",
+        text="This app basically works by using an AI with a set of rules to respond to user queries about an in game universe. In order to talk with the AI, on the main screen, click 'Information' at the top " \
+        "and go to 'Authenticate User' and it will take you to a new window with a text box that asks you to 'Authenticate Access Token', here you put in your AI's (ChatGPT-4o-mini) API key. If you are a teenager with " \
+        "Hackclub (hackclub.com), then you can go to ai.hackcklub.com and sign in with Hackclub to get $3.00 USD of AI use every day. The model in use for this app is ChatGPT-4o-mini. All API keys must be from " \
+        "the Hackclub API, if it is not, then the key will be rejected (you basically have to be a Hackclub user in order to use this program)! When connecting to the Void, don't worry if the Void does not show up " \
+        "immediately or if you don't immediately get to be able to chat to the AI, Void Science is just getting live video feed (images are being cached)! Also don't worry about the very laggy video of the void spinning around! " \
+        "That will change once the faster/more stable video feed is online (more images being cached)",
         font=popup_text_font,
         fill=active_foreground_colour,
         width=520,
@@ -431,7 +452,7 @@ def open_authenticate_popup(parent_root):
 
     canvas.create_text(
         width // 2, 40,
-        text="AUTHENTICATE TOKEN",
+        text="AUTHENTICATE ACCESS TOKEN",
         font=popup_title_font,
         fill=active_foreground_colour,
         justify="center"
@@ -439,7 +460,7 @@ def open_authenticate_popup(parent_root):
 
     canvas.create_text(
         width // 2, 120,
-        text="Authenticate User Here - Enter Token:",
+        text="Authenticate User Here - Enter Access Token:",
         font=descriptionFont,
         fill=active_foreground_colour,
         width=520,
@@ -514,7 +535,7 @@ def open_about_me_popup(parent_root):
         canvas.create_line(-100, i, width + 100, i + 60, fill=colour, width=60)
 
     canvas.create_text(
-        width // 2, 40,
+        width // 2, 30,
         text="ABOUT GSA (THE DEV)",
         font=popup_title_font,
         fill=active_foreground_colour,
@@ -522,13 +543,68 @@ def open_about_me_popup(parent_root):
     )
 
     canvas.create_text(
-        width // 2, 100,
-        text="Description Text",
-        font=popup_text_font,
+        width // 2, 130,
+        text="A little about myself. I am a 15 year old making small projects for fun. " \
+        "This project was for the Terra Hackclub (https://terra.hackclub.com) project (which you can find by clicking on the fox below)! " \
+        "It is honestly quite fun, and I really enjoy making cool fun things for little fun projects like these. " \
+        "My GitHub is at (https://github.com/sadgituser) (TPC UK button below) where you can find many more of my projects! " \
+        "Currently there is nowhere that you can support my work, but you can check out my Etsy shop at (https://theprintedcraftuk.etsy.com) (TPC UK button below)! " \
+        "Enjoy the Void, I hope that you find some fun in yapping with an AI! If you can break or do something cool with it, then email me (kavi@mistrypi.dev) " \
+        "or by clicking the email button below!",
+        font=smaller_popup_text_font,
         fill=active_foreground_colour,
         width=520,
         justify="center"
     )
+
+    etsy_pil_image = Image.open(etsy_image_path)
+    etsy_image = ImageTk.PhotoImage(etsy_pil_image)
+    canvas.etsy_image_ref = etsy_image
+
+    def openEtsyURL():
+        webbrowser.open_new("https://theprintedcraftuk.etsy.com")
+        webbrowser.open_new_tab("https://github.com/sadgituser")
+
+    etsy_logo_btn = tk.Button(aboutMePopup,
+        image=etsy_image,
+        command=openEtsyURL,
+        padx=10, pady=3
+    )
+
+    canvas.create_window(150, 270, window=etsy_logo_btn)
+
+    mail_pil_image = Image.open(mail_image_path)
+    mail_image = ImageTk.PhotoImage(mail_pil_image)
+    canvas.mail_image_ref = mail_image
+
+    def openMail():
+        webbrowser.open_new("mailto:kavi@mistrypi.dev")
+
+    mail_icon_btn = tk.Button(aboutMePopup,
+        image=mail_image,
+        command=openMail,
+        padx=10, 
+        pady=3
+    )
+
+    canvas.create_window(450, 270, window=mail_icon_btn)
+
+    terra_pil_image = Image.open(terra_image_path)
+    terra_image = ImageTk.PhotoImage(terra_pil_image)
+    canvas.terra_image_ref = terra_image
+
+    def openTerra():
+        webbrowser.open_new("https://terra.hackclub.com")
+
+    terra_icon_btn = tk.Button(aboutMePopup,
+        image=terra_image,
+        command=openTerra,
+        padx=10,
+        pady=3,
+        bg=background_colour,
+    )
+
+    canvas.create_window(300, 270, window=terra_icon_btn)
 
     aboutMePopup_exit_btn = Button(aboutMePopup,
         text="CLOSE WINDOW",
@@ -542,8 +618,7 @@ def open_about_me_popup(parent_root):
         pady=3
     )
 
-    canvas.create_window(width // 2, 350, window=aboutMePopup_exit_btn)
-
+    canvas.create_window(width // 2, 360, window=aboutMePopup_exit_btn)
 
 
 def show_continue_button():
