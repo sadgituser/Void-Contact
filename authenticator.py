@@ -64,7 +64,7 @@ for i in range(-200, window_height + 200, 30):
 
 buttonFont = font.Font(family="Consolas", size=17, underline=True)
 titleFont = font.Font(family="Consolas", size=28, underline=True, weight="bold")
-descriptionFont = font.Font(family="Consolas", size=16)
+descriptionFont = font.Font(family="Consolas", size=15)
 popup_title_font = font.Font(family="Consolas", size=18, weight="bold", underline=True)
 popup_text_font = font.Font(family="Consolas", size=10)
 popup_btn_font = font.Font(family="Consolas", size=11, underline=True)
@@ -275,7 +275,7 @@ titleLabel = canvas.create_text(
     fill=active_foreground_colour
 )
 descriptionLabel = canvas.create_text(
-    400, 280,
+    400, 260,
     text="Here you can talk with the Void, an entity that a group of scientists discovered only a few months ago and established uplink communications to it. " \
     "To understand more about how the scientists actually tap into the communication and lore about the Void, then check out the project's 'How It Works' popup "
     "on the menubar! The Void is ready to speak, however, you must authenticate yourself with the Void Science network first, and then you will be granted access! " \
@@ -307,9 +307,9 @@ closeRootButton = Button(root,
 )
 
 def instantiate_continue_button():
-    canvas.create_window(400, 450, window=continueRootButton, tags="continue_button")
+    canvas.create_window(400, 470, window=continueRootButton, tags="continue_button")
 
-canvas.create_window(400, 530, window=closeRootButton)
+canvas.create_window(400, 540, window=closeRootButton)
 
 def open_lore_popup(parent_root):
     lorePopup = tk.Toplevel(parent_root)
@@ -317,8 +317,6 @@ def open_lore_popup(parent_root):
     lorePopup.geometry("600x400+350+250")
     lorePopup.resizable(False, False)
     lorePopup.configure(bg=background_colour, cursor=rocket_cursor)
-    lorePopup.transient(parent_root)
-    lorePopup.grab_set()
     lorePopup.iconbitmap(void_icon)
 
     width, height = 600, 400
@@ -397,7 +395,7 @@ def open_info_popup(parent_root):
     )
 
     canvas.create_text(
-        width // 2, 170, 
+        width // 2, 185, 
         text="This app basically works by using an AI with a set of rules to respond to user queries about an in game universe. In order to talk with the AI, on the main screen, click 'Information' at the top " \
         "and go to 'Authenticate User' and it will take you to a new window with a text box that asks you to 'Authenticate Access Token', here you put in your AI's (ChatGPT-4o-mini) API key. If you are a teenager with " \
         "Hackclub (hackclub.com), then you can go to ai.hackcklub.com and sign in with Hackclub to get $3.00 USD of AI use every day. The model in use for this app is ChatGPT-4o-mini. All API keys must be from " \
@@ -519,8 +517,6 @@ def open_about_me_popup(parent_root):
     aboutMePopup.geometry("600x400+350+250")
     aboutMePopup.resizable(False, False)
     aboutMePopup.configure(bg=background_colour, cursor=rocket_cursor)
-    aboutMePopup.transient(parent_root)
-    aboutMePopup.grab_set()
     aboutMePopup.iconbitmap(void_icon)
 
     width, height = 600, 400
