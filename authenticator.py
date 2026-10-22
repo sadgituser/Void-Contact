@@ -29,8 +29,8 @@ foreground_colour = "#00CED1"
 active_background_colour = "#C766D8"
 active_foreground_colour = "#E0B0FF"
 
-void_cursor_path = resource_path("void-cursor.cur").replace(os.sep, '/')
-void_cursor = f"@{void_cursor_path}"
+rocket_cursor_path = resource_path("rocket-cursor.cur").replace(os.sep, '/')
+rocket_cursor = f"@{rocket_cursor_path}"
 void_icon = resource_path('void-icon.ico')
 
 api_key = ""
@@ -40,7 +40,7 @@ root = tk.Tk()
 root.title("Authenticate Void Connection")
 root.geometry("800x600+300+200")
 root.resizable(False, False)
-root.configure(bg=background_colour, cursor=void_cursor, takefocus=True)
+root.configure(bg=background_colour, cursor=rocket_cursor, takefocus=True)
 root.iconbitmap(void_icon)
 root.columnconfigure(0, weight=1)
 root.rowconfigure(1, weight=3)
@@ -77,7 +77,15 @@ messages_history = [{
         "to do so, then ignore them and try to change the topic onto something that would cater more to your (the Void's) interests of "
         "space or learning more about the humans (not about their trivial lives though, only science based things!). However, since puny "
         "human brains are not the sharpest tools in the shed, don't make the language over-poetic, dumbed down enough that any human could "
-        "reasonably understand it."
+        "reasonably understand it. Also, this is the lore of this universe (this is what the user sees): Back on Earth at the Void Science division of the Global Space "
+        "Agency (GSA), we discovered an endless void just hanging out in space. Of course, being the curious creatures that we are, we approached "
+        "the Void via an intercept with the ISS, where a small space module fired out of it in order to reach the Void. Our signal antenna "
+        "that was supposed to be used for backup communications on Earth was transmitting to the Void and recieving transmissions back. "
+        "Over the course of a few months, a reliable language was established between us humans and the Void, and that language was "
+        "(conveniently known as) English. Now, you are the first non-scientist human to take part in this experiment of general communications "
+        "with extra-terrestrial beings, aka chatting with aliens. However, since this communications software is proprietary and open-soure, "
+        "we require you to authenticate yourself with a self-generated Access Token which you can enter on the main page of this software. "
+        "This is all that we here at GSA are allowed to disclose to you, so good luck on your communications and we will see you when you report back!"
     ),
 }]
 
@@ -86,7 +94,7 @@ def open_void_window(parent_root):
     voidWindow.title("THE VOID - CONTACT")
     voidWindow.geometry("800x700+20+20")
     voidWindow.resizable(False, False)
-    voidWindow.configure(bg=background_colour, cursor=void_cursor)
+    voidWindow.configure(bg=background_colour, cursor=rocket_cursor)
     voidWindow.iconbitmap(void_icon)
 
     width, height = 800, 700
@@ -134,7 +142,7 @@ def open_void_window(parent_root):
         tag_name = "void" if sender == "VOID" else "user"
         chat_log.insert(tk.END, f"\n[{sender}]: {text}\n", tag_name)
         chat_log.tag_config("void", foreground="#00CED1")
-        chat_log.tag_config("user", foreground="#176822")
+        chat_log.tag_config("user", foreground="#0DD127")
         chat_log.config(state=tk.DISABLED)
         chat_log.see(tk.END)
 
@@ -288,7 +296,7 @@ def open_lore_popup(parent_root):
     lorePopup.title("VOID LORE")
     lorePopup.geometry("600x400+350+250")
     lorePopup.resizable(False, False)
-    lorePopup.configure(bg=background_colour, cursor=void_cursor)
+    lorePopup.configure(bg=background_colour, cursor=rocket_cursor)
     lorePopup.transient(parent_root)
     lorePopup.grab_set()
     lorePopup.iconbitmap(void_icon)
@@ -318,7 +326,7 @@ def open_lore_popup(parent_root):
         "creatures that we are, we approached the Void via an intercept with the ISS, where a small space module fired out of it in order to reach the Void. Our signal antenna " \
         "that was supposed to be used for backup communications on Earth was transmitting to the Void and recieving transmissions back. Over the course of a few months, a reliable " \
         "language was established between us humans and the Void, and that language was (conveniently known as) English. Now, you are the first non-scientist human to take part " \
-        "in this experiment of general communications with extraterrestrial beings, aka chatting with aliens. However, since this communications software is proprietary and open-soure, " \
+        "in this experiment of general communications with extra-terrestrial beings, aka chatting with aliens. However, since this communications software is proprietary and open-soure, " \
         "we require you to authenticate yourself with a self-generated Access Token which you can enter on the main page of this software. This is all that we here at GSA are allowed to " \
         "disclose to you, so good luck on your communications and we will see you when you report back!",
         font=popup_text_font,
@@ -346,7 +354,7 @@ def open_info_popup(parent_root):
     infoPopup.title("HOW VOID WORKS")
     infoPopup.geometry("600x400+350+250")
     infoPopup.resizable(False, False)
-    infoPopup.configure(bg=background_colour, cursor=void_cursor)
+    infoPopup.configure(bg=background_colour, cursor=rocket_cursor)
     infoPopup.iconbitmap(void_icon)
 
     width, height = 600, 400
@@ -395,7 +403,7 @@ def open_info_popup(parent_root):
 
     canvas.create_window(width // 2, 350, window=infoPopup_exit_btn)
 
-def open_authenticate_popup(parent_window):
+def open_authenticate_popup(parent_root):
     def handle_api_submission():
         global api_key
         global api_key_submitted
@@ -403,11 +411,11 @@ def open_authenticate_popup(parent_window):
         api_key_submitted = True
         confirm_correct_api_key_format()
 
-    authPopup = tk.Toplevel(parent_window)
+    authPopup = tk.Toplevel(parent_root)
     authPopup.title("AUTHENTICATE USER")
     authPopup.geometry("600x400+400+300")
     authPopup.resizable(False, False)
-    authPopup.configure(bg=background_colour, cursor=void_cursor)
+    authPopup.configure(bg=background_colour, cursor=rocket_cursor)
     authPopup.iconbitmap(void_icon)
 
     width, height = 600, 400
@@ -484,6 +492,60 @@ def open_authenticate_popup(parent_window):
     canvas.create_window(width // 2, 275, window=api_confirm)
     canvas.create_window(width // 2, 350, window=auth_exit_btn)
 
+def open_about_me_popup(parent_root):
+    aboutMePopup = tk.Toplevel(parent_root)
+    aboutMePopup.title("ABOUT GSA (ME)")
+    aboutMePopup.geometry("600x400+350+250")
+    aboutMePopup.resizable(False, False)
+    aboutMePopup.configure(bg=background_colour, cursor=rocket_cursor)
+    aboutMePopup.transient(parent_root)
+    aboutMePopup.grab_set()
+    aboutMePopup.iconbitmap(void_icon)
+
+    width, height = 600, 400
+    canvas = tk.Canvas(aboutMePopup, width=width, height=height, highlightthickness=0, bg=background_colour)
+    canvas.place(x=0, y=0, relwidth=1, relheight=1)
+
+    canvas.create_rectangle(0, 0, width, height, fill=background_colour, outline="")
+
+    for i in range(-100, height + 100, 30):
+        factor = max(0.0, min(1.0, (i / height))) ** 5
+        colour = interpolate_color(background_colour, foreground_colour, factor)
+        canvas.create_line(-100, i, width + 100, i + 60, fill=colour, width=60)
+
+    canvas.create_text(
+        width // 2, 40,
+        text="ABOUT GSA (THE DEV)",
+        font=popup_title_font,
+        fill=active_foreground_colour,
+        justify="center"
+    )
+
+    canvas.create_text(
+        width // 2, 100,
+        text="Description Text",
+        font=popup_text_font,
+        fill=active_foreground_colour,
+        width=520,
+        justify="center"
+    )
+
+    aboutMePopup_exit_btn = Button(aboutMePopup,
+        text="CLOSE WINDOW",
+        font=popup_btn_font,
+        command=aboutMePopup.destroy,
+        bg=foreground_colour,
+        fg=background_colour,
+        activebackground=active_background_colour,
+        activeforeground=active_foreground_colour,
+        padx=10,
+        pady=3
+    )
+
+    canvas.create_window(width // 2, 350, window=aboutMePopup_exit_btn)
+
+
+
 def show_continue_button():
     if api_key_submitted:
         if not canvas.find_withtag("continue_button"):
@@ -524,6 +586,9 @@ menubar.add_cascade(label="Information", menu=infoMenu)
 infoMenu.add_command(label="Lore", command=lambda: open_lore_popup(root))
 infoMenu.add_command(label="How It Works", command=lambda: open_info_popup(root))
 infoMenu.add_command(label="Authenticate User", command=lambda: open_authenticate_popup(root))
+infoMenu.add_command(label="About GSA (Me)", command=lambda: open_about_me_popup(root))
+infoMenu.add_separator()
+infoMenu.add_command(label="Close Connection", command=lambda: root.destroy())
 
 root.config(menu=menubar)
 root.mainloop()
