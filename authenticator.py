@@ -65,9 +65,9 @@ for i in range(-200, window_height + 200, 30):
 buttonFont = font.Font(family="Consolas", size=17, underline=True)
 titleFont = font.Font(family="Consolas", size=28, underline=True, weight="bold")
 descriptionFont = font.Font(family="Consolas", size=15)
-popup_title_font = font.Font(family="Consolas", size=18, weight="bold", underline=True)
-popup_text_font = font.Font(family="Consolas", size=10)
-popup_btn_font = font.Font(family="Consolas", size=11, underline=True)
+popup_title_font = font.Font(family="Consolas", size=27, weight="bold", underline=True)
+popup_text_font = font.Font(family="Consolas", size=14)
+popup_btn_font = font.Font(family="Consolas", size=15, underline=True)
 smaller_popup_text_font = font.Font(family="Consolas", size=9)
 
 messages_history = [{
@@ -238,7 +238,7 @@ def open_void_window(parent_root):
         try:
             client = OpenAI(base_url="https://ai.hackclub.com/proxy/v1", api_key=api_key)
             response = client.chat.completions.create(
-                model="openai/gpt-4o-mini", messages=messages_history
+                model="openai/gpt-4o", messages=messages_history
             )
             reply = response.choices[0].message.content
             messages_history.append({"role": "assistant", "content": reply})
@@ -279,9 +279,7 @@ descriptionLabel = canvas.create_text(
     text="Here you can talk with the Void, an entity that a group of scientists discovered only a few months ago and established uplink communications to it. " \
     "To understand more about how the scientists actually tap into the communication and lore about the Void, then check out the project's 'How It Works' popup "
     "on the menubar! The Void is ready to speak, however, you must authenticate yourself with the Void Science network first, and then you will be granted access! " \
-    "To get started, click on the 'Information' menu on the menubar at the top of the window! (Warning: text does get smaller in popup windows and you cannot " \
-    "resize the popup windows (all windows except for this one are popups, including the Messageboxes and actual chat interface), so be warned, you may have to shrimp " \
-    "your back in order to see what is on the screen!",
+    "To get started, click on the 'Information' menu on the menubar at the top of the window!",
     font=descriptionFont,
     fill=active_foreground_colour,
     width=720,
@@ -314,12 +312,12 @@ canvas.create_window(400, 540, window=closeRootButton)
 def open_lore_popup(parent_root):
     lorePopup = tk.Toplevel(parent_root)
     lorePopup.title("VOID LORE")
-    lorePopup.geometry("600x400+350+250")
+    lorePopup.geometry("800x550+350+250")
     lorePopup.resizable(False, False)
     lorePopup.configure(bg=background_colour, cursor=rocket_cursor)
     lorePopup.iconbitmap(void_icon)
 
-    width, height = 600, 400
+    width, height = 800, 550
     canvas = tk.Canvas(lorePopup, width=width, height=height, highlightthickness=0, bg=background_colour)
     canvas.place(x=0, y=0, relwidth=1, relheight=1)
 
@@ -339,7 +337,7 @@ def open_lore_popup(parent_root):
     )
 
     canvas.create_text(
-        width // 2, 187,
+        width // 2, 265,
         text="Back on Earth at the Void Science division of the Global Space Agency (GSA), we discovered an endless void just hanging out in space. Of course, being the curious " \
         "creatures that we are, we approached the Void via an intercept with the ISS, where a small space module fired out of it in order to reach the Void. Our signal antenna " \
         "that was supposed to be used for backup communications on Earth was transmitting to the Void and recieving transmissions back. Over the course of a few months, a reliable " \
@@ -349,7 +347,7 @@ def open_lore_popup(parent_root):
         "disclose to you, so good luck on your communications and we will see you when you report back!",
         font=popup_text_font,
         fill=active_foreground_colour,
-        width=520,
+        width=720,
         justify="center"
     )
 
@@ -365,17 +363,17 @@ def open_lore_popup(parent_root):
         pady=3
     )
 
-    canvas.create_window(width // 2, 350, window=lorePopup_exit_btn)
+    canvas.create_window(width // 2, 500, window=lorePopup_exit_btn)
 
 def open_info_popup(parent_root):
     infoPopup = tk.Toplevel(parent_root)
     infoPopup.title("HOW VOID WORKS")
-    infoPopup.geometry("600x400+350+250")
+    infoPopup.geometry("800x600+350+250")
     infoPopup.resizable(False, False)
     infoPopup.configure(bg=background_colour, cursor=rocket_cursor)
     infoPopup.iconbitmap(void_icon)
 
-    width, height = 600, 400
+    width, height = 800, 600
     canvas = tk.Canvas(infoPopup, width=width, height=height, highlightthickness=0, bg=background_colour)
     canvas.place(x=0, y=0, relwidth=1, relheight=1)
 
@@ -395,16 +393,16 @@ def open_info_popup(parent_root):
     )
 
     canvas.create_text(
-        width // 2, 185, 
+        width // 2, 270, 
         text="This app basically works by using an AI with a set of rules to respond to user queries about an in game universe. In order to talk with the AI, on the main screen, click 'Information' at the top " \
-        "and go to 'Authenticate User' and it will take you to a new window with a text box that asks you to 'Authenticate Access Token', here you put in your AI's (ChatGPT-4o-mini) API key. If you are a teenager with " \
-        "Hackclub (hackclub.com), then you can go to ai.hackcklub.com and sign in with Hackclub to get $3.00 USD of AI use every day. The model in use for this app is ChatGPT-4o-mini. All API keys must be from " \
+        "and go to 'Authenticate User' and it will take you to a new window with a text box that asks you to 'Authenticate Access Token', here you put in your AI's (ChatGPT-4o) API key. If you are a teenager with " \
+        "Hackclub (hackclub.com), then you can go to ai.hackcklub.com and sign in with Hackclub to get $3.00 USD of AI use every day. The model in use for this app is ChatGPT-4o. All API keys must be from " \
         "the Hackclub API, if it is not, then the key will be rejected (you basically have to be a Hackclub user in order to use this program)! When connecting to the Void, don't worry if the Void does not show up " \
         "immediately or if you don't immediately get to be able to chat to the AI, Void Science is just getting live video feed (images are being cached)! Also don't worry about the very laggy video of the void spinning around! " \
         "That will change once the faster/more stable video feed is online (more images being cached)",
         font=popup_text_font,
         fill=active_foreground_colour,
-        width=520,
+        width=720,
         justify="center"
     )
 
@@ -420,7 +418,7 @@ def open_info_popup(parent_root):
         pady=3
     )
 
-    canvas.create_window(width // 2, 350, window=infoPopup_exit_btn)
+    canvas.create_window(width // 2, 550, window=infoPopup_exit_btn)
 
 def open_authenticate_popup(parent_root):
     def handle_api_submission():
@@ -514,12 +512,12 @@ def open_authenticate_popup(parent_root):
 def open_about_me_popup(parent_root):
     aboutMePopup = tk.Toplevel(parent_root)
     aboutMePopup.title("ABOUT GSA (ME)")
-    aboutMePopup.geometry("600x400+350+250")
+    aboutMePopup.geometry("800x600+350+250")
     aboutMePopup.resizable(False, False)
     aboutMePopup.configure(bg=background_colour, cursor=rocket_cursor)
     aboutMePopup.iconbitmap(void_icon)
 
-    width, height = 600, 400
+    width, height = 800, 600
     canvas = tk.Canvas(aboutMePopup, width=width, height=height, highlightthickness=0, bg=background_colour)
     canvas.place(x=0, y=0, relwidth=1, relheight=1)
 
@@ -531,7 +529,7 @@ def open_about_me_popup(parent_root):
         canvas.create_line(-100, i, width + 100, i + 60, fill=colour, width=60)
 
     canvas.create_text(
-        width // 2, 30,
+        width // 2, 50,
         text="ABOUT GSA (THE DEV)",
         font=popup_title_font,
         fill=active_foreground_colour,
@@ -539,7 +537,7 @@ def open_about_me_popup(parent_root):
     )
 
     canvas.create_text(
-        width // 2, 130,
+        width // 2, 230,
         text="A little about myself. I am a 15 year old making small projects for fun. " \
         "This project was for the Terra Hackclub (https://terra.hackclub.com) project (which you can find by clicking on the fox below)! " \
         "It is honestly quite fun, and I really enjoy making cool fun things for little fun projects like these. " \
@@ -547,9 +545,9 @@ def open_about_me_popup(parent_root):
         "Currently there is nowhere that you can support my work, but you can check out my Etsy shop at (https://theprintedcraftuk.etsy.com) (TPC UK button below)! " \
         "Enjoy the Void, I hope that you find some fun in yapping with an AI! If you can break or do something cool with it, then email me (kavi@mistrypi.dev) " \
         "or by clicking the email button below!",
-        font=smaller_popup_text_font,
+        font=popup_text_font,
         fill=active_foreground_colour,
-        width=520,
+        width=720,
         justify="center"
     )
 
@@ -567,7 +565,7 @@ def open_about_me_popup(parent_root):
         padx=10, pady=3
     )
 
-    canvas.create_window(150, 270, window=etsy_logo_btn)
+    canvas.create_window(200, 460, window=etsy_logo_btn)
 
     mail_pil_image = Image.open(mail_image_path)
     mail_image = ImageTk.PhotoImage(mail_pil_image)
@@ -583,7 +581,7 @@ def open_about_me_popup(parent_root):
         pady=3
     )
 
-    canvas.create_window(450, 270, window=mail_icon_btn)
+    canvas.create_window(width // 2, 460, window=mail_icon_btn)
 
     terra_pil_image = Image.open(terra_image_path)
     terra_image = ImageTk.PhotoImage(terra_pil_image)
@@ -600,7 +598,7 @@ def open_about_me_popup(parent_root):
         bg=background_colour,
     )
 
-    canvas.create_window(300, 270, window=terra_icon_btn)
+    canvas.create_window(600, 460, window=terra_icon_btn)
 
     aboutMePopup_exit_btn = Button(aboutMePopup,
         text="CLOSE WINDOW",
@@ -614,7 +612,7 @@ def open_about_me_popup(parent_root):
         pady=3
     )
 
-    canvas.create_window(width // 2, 360, window=aboutMePopup_exit_btn)
+    canvas.create_window(width // 2, 560, window=aboutMePopup_exit_btn)
 
 
 def show_continue_button():
@@ -638,7 +636,7 @@ def confirm_correct_api_key_format():
     try:
         client = OpenAI(base_url="https://ai.hackclub.com/proxy/v1", api_key=api_key)
         response = client.chat.completions.create(
-            model="openai/gpt-4o-mini",
+            model="openai/gpt-4o",
             messages=[{"role": "user", "content": "ping"}],
             max_tokens = 5
         )
