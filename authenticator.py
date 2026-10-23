@@ -156,10 +156,20 @@ def open_void_window(parent_root):
 
     def append_to_chat(sender, text):
         chat_log.config(state=tk.NORMAL)
-        tag_name = "void" if sender == "VOID" else "user"
+
+        if sender == "VOID":
+            tag_name = "void"
+        elif sender == "SYSTEM":
+            tag_name = "system"
+        else:
+            tag_name = "user"
+
         chat_log.insert(tk.END, f"\n[{sender}]: {text}\n", tag_name)
+
         chat_log.tag_config("void", foreground="#00CED1")
-        chat_log.tag_config("user", foreground="#0DD127")
+        chat_log.tag_config("system", foreground="#D4AF37")
+        chat_log.tag_config("user", foreground="#37BE7B")
+
         chat_log.config(state=tk.DISABLED)
         chat_log.see(tk.END)
 
@@ -257,7 +267,7 @@ def open_void_window(parent_root):
         return "break"
 
     user_submit_response = tk.Button(right_frame,
-        text="SUBMIT ->",
+        text="SUBMIT",
         command=send_message,
         font=popup_btn_font,
         state=tk.DISABLED,
@@ -650,13 +660,19 @@ def confirm_correct_api_key_format():
         messagebox.showerror("Connection Error", f"Could not connect to the Void. Error Code: {str(e)}")
 
 menubar = tk.Menu(root)
-infoMenu = Menu(menubar, tearoff=0)
+infoMenu = Menu(menubar,
+    tearoff=0,
+    bg="#1E0824",
+    fg="#E0B0FF",
+    activebackground="#C766D8",
+    activeforeground="#FFFFFF"
+)
 menubar.add_cascade(label="Information", menu=infoMenu)
 infoMenu.add_command(label="Lore", command=lambda: open_lore_popup(root))
 infoMenu.add_command(label="How It Works", command=lambda: open_info_popup(root))
 infoMenu.add_command(label="Authenticate User", command=lambda: open_authenticate_popup(root))
-infoMenu.add_command(label="About GSA (Me)", command=lambda: open_about_me_popup(root))
 infoMenu.add_separator()
+infoMenu.add_command(label="ABOUT GSA (Me)", command=lambda: open_about_me_popup(root))
 infoMenu.add_command(label="Close Connection", command=lambda: root.destroy())
 
 root.config(menu=menubar)
