@@ -673,6 +673,7 @@ infoMenu.add_command(label="How It Works", command=lambda: open_info_popup(root)
 infoMenu.add_command(label="Authenticate User", command=lambda: open_authenticate_popup(root))
 infoMenu.add_separator()
 infoMenu.add_command(label="ABOUT GSA (Me)", command=lambda: open_about_me_popup(root))
+infoMenu.add_separator()
 infoMenu.add_command(label="Close Connection", command=lambda: root.destroy())
 
 root.config(menu=menubar)
