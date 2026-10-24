@@ -17,7 +17,7 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y python3-tk
           pip install --upgrade pip
-          pip install pyinstaller pillow openai
+          pip install pyinstaller pillow openai pygame-ce
       - name: Build Executable
         run: pyinstaller --noconsole --onefile --name "voidChat" --icon="Assets/void-icon.ico" --add-data "Assets:Assets" voidChat.py
       - name: Upload Artifact
@@ -31,11 +31,11 @@ jobs:
     container: fedora:latest
     steps:
       - name: Install System Dependencies
-        run: dnf install -y git python3 python3-pip python3-tkinter
+        run: dnf install -y git python3 python3-pip python3-tkinter binutils findutils gcc
       - name: Checkout Code
         uses: actions/checkout@v4
       - name: Install Python Packages
-        run: pip3 install pyinstaller pillow openai
+        run: pip3 install pyinstaller pillow openai pygame-ce
       - name: Build Executable
         run: pyinstaller --noconsole --onefile --name "voidChat" --icon="Assets/void-icon.ico" --add-data "Assets:Assets" voidChat.py
       - name: Upload Artifact
@@ -53,7 +53,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
       - name: Install Python Packages
-        run: pip install --break-system-packages pyinstaller pillow openai
+        run: pip install --break-system-packages pyinstaller pillow openai pygame-ce
       - name: Build Executable
         run: pyinstaller --noconsole --onefile --name "voidChat" --icon="Assets/void-icon.ico" --add-data "Assets:Assets" voidChat.py
       - name: Upload Artifact
@@ -82,7 +82,7 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyinstaller pillow openai
+          pip install pyinstaller pillow openai pygame-ce
       - name: Build Executable
         run: pyinstaller --noconsole --onefile --name "voidChat" --icon="Assets/void-icon.ico" --add-data "Assets;Assets" voidChat.py
       - name: Upload Artifact
@@ -110,7 +110,7 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyinstaller pillow openai
+          pip install pyinstaller pillow openai pygame-ce
       - name: Build Executable
         run: pyinstaller --noconsole --onefile --name "voidChat" --icon="Assets/void-icon.ico" --add-data "Assets:Assets" voidChat.py
       - name: Upload Artifact

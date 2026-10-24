@@ -7,6 +7,9 @@ from openai import OpenAI, AuthenticationError
 from PIL import Image, ImageTk
 import threading
 import webbrowser
+import pygame
+
+ai_model = "openai/gpt-4o"
 
 def resource_path(relative_path):
     try:
@@ -36,6 +39,16 @@ void_icon = resource_path("void-icon.ico")
 etsy_image_path = resource_path("photo3.png").replace(os.sep, '/')
 mail_image_path = resource_path("photo4.png").replace(os.sep, '/')
 terra_image_path = resource_path("photo2.png").replace(os.sep, '/')
+bg_music_path = resource_path("background-music.mp3").replace(os.sep, '/')
+
+
+pygame.mixer.init()
+try:
+    pygame.mixer.music.load(bg_music_path)
+    pygame.mixer.music.set_volume(0.3)
+    pygame.mixer.music.play(-1)
+except Exception as e:
+    messagebox.showerror("Music Fail", f"Failed to load background music: {e}")
 
 api_key = ""
 api_key_submitted = False
@@ -248,7 +261,7 @@ def open_void_window(parent_root):
         try:
             client = OpenAI(base_url="https://ai.hackclub.com/proxy/v1", api_key=api_key)
             response = client.chat.completions.create(
-                model="openai/gpt-4o", messages=messages_history
+                model=ai_model, messages=messages_history
             )
             reply = response.choices[0].message.content
             messages_history.append({"role": "assistant", "content": reply})
@@ -262,9 +275,16 @@ def open_void_window(parent_root):
             return "break"
         user_entry.delete("1.0", tk.END)
         append_to_chat("YOU", user_text)
+        append_to_chat("SYSTEM", "Sending to Void... Please wait")
         messages_history.append({"role": "user", "content": user_text})
         threading.Thread(target=fetch_ai_response, daemon=True).start()
         return "break"
+
+    def clear_chat_log():
+        chat_log.config(state=tk.NORMAL)
+        chat_log.delete("1.0", tk.END)
+        chat_log.config(state=tk.DISABLED)
+
 
     user_submit_response = tk.Button(right_frame,
         text="SUBMIT",
@@ -276,7 +296,18 @@ def open_void_window(parent_root):
         activebackground=active_background_colour,
         activeforeground=active_foreground_colour
     )
-    user_submit_response.place(x=335, y=550, width=100, height=130)
+    user_submit_response.place(x=335, y=550, width=100, height=60)
+
+    clear_chat = tk.Button(right_frame,
+        text="CLEAR",
+        command=clear_chat_log,
+        font=popup_btn_font,
+        bg=foreground_colour,
+        fg=background_colour,
+        activebackground=active_background_colour,
+        activeforeground=active_foreground_colour
+    )
+    clear_chat.place(x=335, y=617, width=100, height=60)
 
 titleLabel = canvas.create_text(
     400, 50,
@@ -285,7 +316,7 @@ titleLabel = canvas.create_text(
     fill=active_foreground_colour
 )
 descriptionLabel = canvas.create_text(
-    400, 260,
+    400, 210,
     text="Here you can talk with the Void, an entity that a group of scientists discovered only a few months ago and established uplink communications to it. " \
     "To understand more about how the scientists actually tap into the communication and lore about the Void, then check out the project's 'How It Works' popup "
     "on the menubar! The Void is ready to speak, however, you must authenticate yourself with the Void Science network first, and then you will be granted access! " \
@@ -404,9 +435,9 @@ def open_info_popup(parent_root):
 
     canvas.create_text(
         width // 2, 270, 
-        text="This app basically works by using an AI with a set of rules to respond to user queries about an in game universe. In order to talk with the AI, on the main screen, click 'Information' at the top " \
-        "and go to 'Authenticate User' and it will take you to a new window with a text box that asks you to 'Authenticate Access Token', here you put in your AI's (ChatGPT-4o) API key. If you are a teenager with " \
-        "Hackclub (hackclub.com), then you can go to ai.hackcklub.com and sign in with Hackclub to get $3.00 USD of AI use every day. The model in use for this app is ChatGPT-4o. All API keys must be from " \
+        text=f"This app basically works by using an AI with a set of rules to respond to user queries about an in game universe. In order to talk with the AI, on the main screen, click 'Information' at the top " \
+        "and go to 'Authenticate User' and it will take you to a new window with a text box that asks you to 'Authenticate Access Token', here you put in your AI's API key. If you are a teenager with " \
+        "Hackclub (hackclub.com), then you can go to ai.hackcklub.com and sign in with Hackclub to get $3.00 USD of AI use every day. The model in use for this app {ai_model}. All API keys must be from " \
         "the Hackclub API, if it is not, then the key will be rejected (you basically have to be a Hackclub user in order to use this program)! When connecting to the Void, don't worry if the Void does not show up " \
         "immediately or if you don't immediately get to be able to chat to the AI, Void Science is just getting live video feed (images are being cached)! Also don't worry about the very laggy video of the void spinning around! " \
         "That will change once the faster/more stable video feed is online (more images being cached)",
@@ -424,7 +455,7 @@ def open_info_popup(parent_root):
         fg=background_colour,
         activebackground=active_background_colour,
         activeforeground=active_foreground_colour,
-        padx=10, 
+        padx=10,
         pady=3
     )
 
@@ -646,7 +677,7 @@ def confirm_correct_api_key_format():
     try:
         client = OpenAI(base_url="https://ai.hackclub.com/proxy/v1", api_key=api_key)
         response = client.chat.completions.create(
-            model="openai/gpt-4o",
+            model=ai_model,
             messages=[{"role": "user", "content": "ping"}],
             max_tokens = 5
         )
