@@ -22,6 +22,10 @@ Check out my other project [here](https://github.com/sadgituser/python-random-pa
 ![The icon of my Etsy shop](/Assets/photo3.png)
 
 
+[Music Assets](https://pixabay.com/music/ambient-space-ambient-509783/)
+[Hackclub Assets](https://hackclub.com/brand)
+
+
 Made for the [Hackclub Terra](https://terra.hackclub.com) project for [Hackclub](https://hackclub.com).
 
 

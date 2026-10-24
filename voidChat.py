@@ -7,7 +7,6 @@ from openai import OpenAI, AuthenticationError
 from PIL import Image, ImageTk
 import threading
 import webbrowser
-import pygame
 
 ai_model = "openai/gpt-4o"
 
@@ -41,6 +40,8 @@ mail_image_path = resource_path("photo4.png").replace(os.sep, '/')
 terra_image_path = resource_path("photo2.png").replace(os.sep, '/')
 bg_music_path = resource_path("background-music.mp3").replace(os.sep, '/')
 
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+import pygame
 
 pygame.mixer.init()
 try:
@@ -55,7 +56,7 @@ api_key_submitted = False
 
 root = tk.Tk()
 root.title("Authenticate Void Connection")
-root.geometry("800x600+300+200")
+root.geometry("800x530+300+200")
 root.resizable(False, False)
 root.configure(bg=background_colour, cursor=rocket_cursor, takefocus=True)
 root.iconbitmap(void_icon)
@@ -69,11 +70,11 @@ canvas.place(x=0, y=0, relwidth=1, relheight=1)
 
 canvas.create_rectangle(0, 0, 800, 600, fill=background_colour, outline="")
 
-window_height = 600
+window_height = 530
 for i in range(-200, window_height + 200, 30):
     factor = max(0.0, min(1.0, (i / window_height))) ** 8
-    color = interpolate_color(background_colour, foreground_colour, factor)
-    canvas.create_line(-200, i, 1000, i + 80, fill=color, width=80)
+    colour = interpolate_color(background_colour, foreground_colour, factor)
+    canvas.create_line(-200, i, 1000, i + 80, fill=colour, width=80)
 
 buttonFont = font.Font(family="Consolas", size=17, underline=True)
 titleFont = font.Font(family="Consolas", size=28, underline=True, weight="bold")
@@ -346,9 +347,9 @@ closeRootButton = Button(root,
 )
 
 def instantiate_continue_button():
-    canvas.create_window(400, 470, window=continueRootButton, tags="continue_button")
+    canvas.create_window(400, 380, window=continueRootButton, tags="continue_button")
 
-canvas.create_window(400, 540, window=closeRootButton)
+canvas.create_window(400, 465, window=closeRootButton)
 
 def open_lore_popup(parent_root):
     lorePopup = tk.Toplevel(parent_root)
@@ -655,6 +656,83 @@ def open_about_me_popup(parent_root):
 
     canvas.create_window(width // 2, 560, window=aboutMePopup_exit_btn)
 
+def open_assets_popup(parent_root):
+    assetPopup = tk.Toplevel(parent_root)
+    assetPopup.title("INFORMATION ON THE ASSETS")
+    assetPopup.geometry("800x340+150+200")
+    assetPopup.resizable(False, False)
+    assetPopup.configure(bg=background_colour, cursor=rocket_cursor)
+    assetPopup.iconbitmap(void_icon)
+
+    width, height = 800, 340
+    canvas = tk.Canvas(assetPopup, width=width, height=height, highlightthickness=0, bg=background_colour)
+    canvas.place(x=0, y=0, relwidth=1, relheight=1)
+
+    canvas.create_rectangle(0, 0, width, height, fill=background_colour, outline="")
+
+    for i in range(-100, height + 100, 25):
+        factor = max(0.0, min(1.0, (i / height))) ** 5
+        colour = interpolate_color(background_colour, foreground_colour, factor)
+        canvas.create_line(-100, i, width + 100, i + 50, fill=colour, width=60)
+
+    canvas.create_text(
+        width // 2, 40,
+        text="INFORMATION ON THE ASSETS:",
+        font=popup_title_font,
+        fill=active_foreground_colour,
+        justify="center"
+    )
+
+    canvas.create_text(
+        width // 2, 105,
+        text="Music: 'Space Ambient' by 'leberch'. As found on (https://pixabay.com/music/ambient-space-ambient-509783/)",
+        font=popup_text_font,
+        fill=active_foreground_colour,
+        width=720,
+        justify="center"
+    )
+
+    canvas.create_text(
+        width // 2, 155,
+        text="Hackclub Assets: (https://hackclub.com/brand)",
+        font=popup_text_font,
+        fill=active_foreground_colour,
+        width=720,
+        justify="center"
+    )
+
+    canvas.create_text(
+        width // 2, 190,
+        text="TPC Icon, Void Image, Rocket Cursor and Mail Icon made by Me",
+        font=popup_text_font,
+        fill=active_foreground_colour,
+        width=720,
+        justify="center"
+    )
+
+    canvas.create_text(
+        width // 2, 225,
+        text="(More on About Me Popup Window and on the README at (https://github.com/sadgituser/Void-Contact))",
+        font=popup_text_font,
+        fill=active_foreground_colour,
+        width = 720,
+        justify="center"
+    )
+
+    assetPopup_exit_btn = Button(assetPopup,
+        text="CLOSE WINDOW",
+        font=popup_btn_font,
+        command=assetPopup.destroy,
+        bg=foreground_colour,
+        fg=background_colour,
+        activebackground=active_background_colour,
+        activeforeground=active_foreground_colour,
+        padx=10,
+        pady=3
+    )
+
+    canvas.create_window(width // 2, 300, window=assetPopup_exit_btn)
+
 
 def show_continue_button():
     if api_key_submitted:
@@ -704,6 +782,7 @@ infoMenu.add_command(label="How It Works", command=lambda: open_info_popup(root)
 infoMenu.add_command(label="Authenticate User", command=lambda: open_authenticate_popup(root))
 infoMenu.add_separator()
 infoMenu.add_command(label="ABOUT GSA (Me)", command=lambda: open_about_me_popup(root))
+infoMenu.add_command(label="Assets", command=lambda: open_assets_popup(root))
 infoMenu.add_separator()
 infoMenu.add_command(label="Close Connection", command=lambda: root.destroy())
 
