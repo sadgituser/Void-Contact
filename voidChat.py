@@ -441,7 +441,7 @@ def open_info_popup(parent_root):
         "Hackclub (hackclub.com), then you can go to ai.hackcklub.com and sign in with Hackclub to get $3.00 USD of AI use every day. The model in use for this app {ai_model}. All API keys must be from " \
         "the Hackclub API, if it is not, then the key will be rejected (you basically have to be a Hackclub user in order to use this program)! When connecting to the Void, don't worry if the Void does not show up " \
         "immediately or if you don't immediately get to be able to chat to the AI, Void Science is just getting live video feed (images are being cached)! Also don't worry about the very laggy video of the void spinning around! " \
-        "That will change once the faster/more stable video feed is online (more images being cached)",
+        "That will change once the faster/more stable video feed is online (more images being cached). You can also change the AI Model in the 'Change Void Location' popup!",
         font=popup_text_font,
         fill=active_foreground_colour,
         width=720,
@@ -733,6 +733,56 @@ def open_assets_popup(parent_root):
 
     canvas.create_window(width // 2, 300, window=assetPopup_exit_btn)
 
+def open_ai_model_change_popup(parent_root):
+    aiChangePopup = tk.Toplevel(parent_root)
+    aiChangePopup.title("CHANGE VOID LOCATION")
+    aiChangePopup.geometry("600x400+30+50")
+    aiChangePopup.resizable(False, False)
+    aiChangePopup.configure(bg=background_colour, cursor=rocket_cursor)
+    aiChangePopup.iconbitmap(void_icon)
+
+    width, height = 600, 400
+    canvas = tk.Canvas(aiChangePopup, width=width, height=height, highlightthickness=0, bg=background_colour)
+    canvas.place(x=0, y=0, relwidth=1, relheight=1)
+
+    canvas.create_rectangle(0, 0, width, height, fill=background_colour, outline="")
+
+    for i in range(-100, height + 100, 30):
+        factor = max(0.0, min(1.0, (i / height))) ** 5
+        colour = interpolate_color(background_colour, foreground_colour, factor)
+        canvas.create_line(-100, i, width + 100, i + 60, fill=colour, width=60)
+
+    canvas.create_text(
+        width // 2, 40,
+        text="CHANGE VOID LOCATION",
+        font=popup_title_font,
+        fill=active_foreground_colour,
+        justify="center"
+    )
+
+    canvas.create_text(
+        width // 2, 90,
+        text="Placeholder Text!",
+        font=popup_text_font,
+        fill = active_foreground_colour,
+        justify="center"
+    )
+
+    aiChangePopup_exit_btn = Button(aiChangePopup,
+        text="CLOSE WINDOW",
+        font=popup_btn_font,
+        command=aiChangePopup.destroy,
+        bg=foreground_colour,
+        fg=background_colour,
+        activebackground=active_background_colour,
+        activeforeground=active_foreground_colour,
+        padx=10,
+        pady=3
+    )
+
+    canvas.create_window(width // 2, 550, window=aiChangePopup_exit_btn)
+
+
 
 def show_continue_button():
     if api_key_submitted:
@@ -779,6 +829,7 @@ infoMenu = Menu(menubar,
 menubar.add_cascade(label="Information", menu=infoMenu)
 infoMenu.add_command(label="Lore", command=lambda: open_lore_popup(root))
 infoMenu.add_command(label="How It Works", command=lambda: open_info_popup(root))
+infoMenu.add_command(label="Change Void Location", command=lambda: open_ai_model_change_popup(root))
 infoMenu.add_command(label="Authenticate User", command=lambda: open_authenticate_popup(root))
 infoMenu.add_separator()
 infoMenu.add_command(label="ABOUT GSA (Me)", command=lambda: open_about_me_popup(root))
