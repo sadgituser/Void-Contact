@@ -7,6 +7,8 @@ from openai import OpenAI, AuthenticationError
 from PIL import Image, ImageTk
 import threading
 import webbrowser
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+import pygame
 
 ai_model = "openai/gpt-4o"
 
@@ -39,17 +41,6 @@ etsy_image_path = resource_path("photo3.png").replace(os.sep, '/')
 mail_image_path = resource_path("photo4.png").replace(os.sep, '/')
 terra_image_path = resource_path("photo2.png").replace(os.sep, '/')
 bg_music_path = resource_path("background-music.mp3").replace(os.sep, '/')
-
-os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
-import pygame
-
-pygame.mixer.init()
-try:
-    pygame.mixer.music.load(bg_music_path)
-    pygame.mixer.music.set_volume(0.3)
-    pygame.mixer.music.play(-1)
-except Exception as e:
-    messagebox.showerror("Music Fail", f"Failed to load background music: {e}")
 
 api_key = ""
 api_key_submitted = False
@@ -137,6 +128,19 @@ def open_void_window(parent_root):
 
     left_canvas = tk.Canvas(left_frame, width=left_panel_width, height=height, bg="#000000", highlightthickness=0)
     left_canvas.pack(fill=tk.BOTH, expand=True)
+
+    closeVoidButton = Button(left_canvas,
+        text="CLOSE WINDOW",
+        font=popup_btn_font,
+        command=voidWindow.destroy,
+        bg=foreground_colour,
+        fg=background_colour,
+        activebackground=active_background_colour,
+        activeforeground=active_foreground_colour,
+        padx=10,
+        pady=3
+    )
+    left_canvas.create_window(left_panel_width // 2, 650, window=closeVoidButton)
 
     loading_text_id = left_canvas.create_text(
         left_panel_width // 2, height // 2,
@@ -410,12 +414,12 @@ def open_lore_popup(parent_root):
 def open_info_popup(parent_root):
     infoPopup = tk.Toplevel(parent_root)
     infoPopup.title("HOW VOID WORKS")
-    infoPopup.geometry("800x600+350+250")
+    infoPopup.geometry("800x550+350+250")
     infoPopup.resizable(False, False)
     infoPopup.configure(bg=background_colour, cursor=rocket_cursor)
     infoPopup.iconbitmap(void_icon)
 
-    width, height = 800, 600
+    width, height = 800, 550
     canvas = tk.Canvas(infoPopup, width=width, height=height, highlightthickness=0, bg=background_colour)
     canvas.place(x=0, y=0, relwidth=1, relheight=1)
 
@@ -435,13 +439,12 @@ def open_info_popup(parent_root):
     )
 
     canvas.create_text(
-        width // 2, 270, 
+        width // 2, 260, 
         text=f"This app basically works by using an AI with a set of rules to respond to user queries about an in game universe. In order to talk with the AI, on the main screen, click 'Information' at the top " \
         "and go to 'Authenticate User' and it will take you to a new window with a text box that asks you to 'Authenticate Access Token', here you put in your AI's API key. If you are a teenager with " \
-        "Hackclub (hackclub.com), then you can go to ai.hackcklub.com and sign in with Hackclub to get $3.00 USD of AI use every day. The model in use for this app {ai_model}. All API keys must be from " \
-        "the Hackclub API, if it is not, then the key will be rejected (you basically have to be a Hackclub user in order to use this program)! When connecting to the Void, don't worry if the Void does not show up " \
-        "immediately or if you don't immediately get to be able to chat to the AI, Void Science is just getting live video feed (images are being cached)! Also don't worry about the very laggy video of the void spinning around! " \
-        "That will change once the faster/more stable video feed is online (more images being cached). You can also change the AI Model in the 'Change Void Location' popup!",
+        "Hackclub (hackclub.com), then you can go to ai.hackcklub.com and sign in with Hackclub to get $3.00 USD of AI use every day. All API keys must be from the Hackclub API, if it is not, then the key will be rejected! " \
+        "You can also customize your active AI Model anytime via the 'Change Void Location' menu option — if you leave it blank then the system will automatically default to 'openai/gpt-4o'. When connecting to the Void, " \
+        "don't worry if the Void does not show up immediately, live video feeds and image caches are being synchronized!",
         font=popup_text_font,
         fill=active_foreground_colour,
         width=720,
@@ -460,7 +463,7 @@ def open_info_popup(parent_root):
         pady=3
     )
 
-    canvas.create_window(width // 2, 550, window=infoPopup_exit_btn)
+    canvas.create_window(width // 2, 500, window=infoPopup_exit_btn)
 
 def open_authenticate_popup(parent_root):
     def handle_api_submission():
@@ -498,7 +501,7 @@ def open_authenticate_popup(parent_root):
 
     canvas.create_text(
         width // 2, 120,
-        text="Authenticate User Here - Enter Access Token:",
+        text=f"Authenticate User Here - Enter Access Token for {ai_model} Void:",
         font=descriptionFont,
         fill=active_foreground_colour,
         width=520,
@@ -736,12 +739,12 @@ def open_assets_popup(parent_root):
 def open_ai_model_change_popup(parent_root):
     aiChangePopup = tk.Toplevel(parent_root)
     aiChangePopup.title("CHANGE VOID LOCATION")
-    aiChangePopup.geometry("600x400+30+50")
+    aiChangePopup.geometry("800x700+30+50")
     aiChangePopup.resizable(False, False)
     aiChangePopup.configure(bg=background_colour, cursor=rocket_cursor)
     aiChangePopup.iconbitmap(void_icon)
 
-    width, height = 600, 400
+    width, height = 800, 700
     canvas = tk.Canvas(aiChangePopup, width=width, height=height, highlightthickness=0, bg=background_colour)
     canvas.place(x=0, y=0, relwidth=1, relheight=1)
 
@@ -761,12 +764,90 @@ def open_ai_model_change_popup(parent_root):
     )
 
     canvas.create_text(
-        width // 2, 90,
-        text="Placeholder Text!",
+        width // 2, 150,
+        text="Here you can change the AI model! The default one is openai/gpt-4o. In the first field, enter the AI provider name " \
+        "(such as 'openai' or 'anthropic' etc) and in the second field enter the model name (such as 'gpt-4o' or 'cluade-opus-5.5'). " \
+        "Ensure that you type the provider and model name correctly, else the default 'openai/gpt-4o' will be used! Bear in mind " \
+        "that different AI models cost different amounts of the $3.00 USD per day! You can only use the 'Language' models",
         font=popup_text_font,
         fill = active_foreground_colour,
-        justify="center"
+        justify="center",
+        width=750
     )
+
+    aiProviderVar = StringVar()
+    aiModelVar = StringVar()
+
+    aiChangeProvider = Entry(aiChangePopup,
+        textvariable=aiProviderVar,
+        font=descriptionFont,
+        bg="#1E0824",
+        fg=active_foreground_colour,
+        insertbackground="white",
+        width=50
+    )
+    canvas.create_window(width // 2, 300, window=aiChangeProvider, height=35)
+
+    aiViewModels_btn = Button(aiChangePopup,
+        text="See Valid AI Models (Hackclub)",
+        font=popup_btn_font,
+        command=lambda: [webbrowser.open_new("https://ai.hackclub.com/models")],
+        bg=foreground_colour,
+        fg=background_colour,
+        activebackground=active_background_colour,
+        activeforeground=active_foreground_colour,
+        padx=10,
+        pady=3
+    )
+    canvas.create_window(width // 2, 375, window=aiViewModels_btn)
+
+    aiChangeModel = Entry(aiChangePopup,
+        textvariable=aiModelVar,
+        font=descriptionFont,
+        bg="#1E0824",
+        fg=active_foreground_colour,
+        insertbackground="white",
+        width=50
+    )
+    canvas.create_window(width // 2, 475, window=aiChangeModel, height=35)
+
+
+    def handle_model_submission():
+        global ai_model
+        prov = aiProviderVar.get().strip().lower()
+        mod = aiModelVar.get().strip().lower()
+
+        if not prov or not mod:
+            ai_model = "openai/gpt-4o"
+            messagebox.showinfo("Model Defaulted", "No valid model entered, defaulting to openai/gpt-4o")
+        else:
+            ai_model = f"{prov}/{mod}"
+            messagebox.showinfo("Model Updated", f"Void Model updated to {ai_model}. Ensure that this is the correct spelling of the model, as otherwise the app will fail to contact the AI and will not work!")
+        aiChangePopup.destroy()
+
+    def can_use_change_model():
+        if api_key_submitted == True:
+            aiSubmitModel_btn.config(state=tk.DISABLED)
+        else:
+            aiSubmitModel_btn.config(state=tk.NORMAL)
+
+    aiSubmitModel_btn = Button(aiChangePopup,
+        text="Submit New Model",
+        font=popup_btn_font,
+        command=handle_model_submission,
+        state=tk.DISABLED,
+        bg=foreground_colour,
+        fg=background_colour,
+        activebackground=active_background_colour,
+        activeforeground=active_foreground_colour,
+        padx=10,
+        pady=3
+    )
+    canvas.create_window(width // 2, 550, window=aiSubmitModel_btn)
+
+    def start_can_change_aiModel_loop():
+        can_use_change_model()
+        aiChangePopup.after(3000, start_can_change_aiModel_loop)
 
     aiChangePopup_exit_btn = Button(aiChangePopup,
         text="CLOSE WINDOW",
@@ -780,7 +861,9 @@ def open_ai_model_change_popup(parent_root):
         pady=3
     )
 
-    canvas.create_window(width // 2, 550, window=aiChangePopup_exit_btn)
+    canvas.create_window(width // 2, 650, window=aiChangePopup_exit_btn)
+
+    start_can_change_aiModel_loop()
 
 
 
@@ -796,6 +879,7 @@ show_continue_button()
 
 def confirm_correct_api_key_format():
     global api_key_submitted
+    global ai_model
 
     if not api_key.startswith("sk-hc-v1-"):
         api_key_submitted = False
@@ -810,13 +894,36 @@ def confirm_correct_api_key_format():
             max_tokens = 5
         )
         api_key_submitted = True
-        messagebox.showinfo("API Key Accepted", "Your authentication credentials have been accepted! Connection to the Void is now stable! Please continue!")
+        messagebox.showinfo("API Key Accepted", f"Your authentication credentials have been accepted! Connection to the Void ({ai_model}) is now stable! Please continue!")
     except AuthenticationError:
         api_key_submitted = False
         messagebox.showerror("API Key Rejected - Authentication Failed", "Your authentication credentials were rejected by the server. Please check that your details are correct!")
     except Exception as e:
         api_key_submitted = False
         messagebox.showerror("Connection Error", f"Could not connect to the Void. Error Code: {str(e)}")
+
+
+play_music = tk.BooleanVar(value=True)
+
+pygame.mixer.init()
+try:
+    pygame.mixer.music.load(bg_music_path)
+    pygame.mixer.music.set_volume(0.3)
+    pygame.mixer.music.play(-1)
+except Exception as e:
+    messagebox.showerror("Music Fail", f"Failed to load background music: {e}")
+
+def toggle_music():
+    if play_music.get() == True:
+        pygame.mixer.music.unpause()
+    else:
+        pygame.mixer.music.pause()
+
+def check_music_toggle():
+    toggle_music()
+    root.after(100, check_music_toggle)
+
+check_music_toggle()
 
 menubar = tk.Menu(root)
 infoMenu = Menu(menubar,
@@ -834,6 +941,7 @@ infoMenu.add_command(label="Authenticate User", command=lambda: open_authenticat
 infoMenu.add_separator()
 infoMenu.add_command(label="ABOUT GSA (Me)", command=lambda: open_about_me_popup(root))
 infoMenu.add_command(label="Assets", command=lambda: open_assets_popup(root))
+infoMenu.add_checkbutton(label="Toggle Music", variable=play_music, command=lambda: toggle_music())
 infoMenu.add_separator()
 infoMenu.add_command(label="Close Connection", command=lambda: root.destroy())
 
