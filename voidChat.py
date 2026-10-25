@@ -7,6 +7,7 @@ from openai import OpenAI, AuthenticationError
 from PIL import Image, ImageTk
 import threading
 import webbrowser
+import random
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 
@@ -925,6 +926,105 @@ def check_music_toggle():
 
 check_music_toggle()
 
+
+def konami_code_fun():
+    funWindow = tk.Toplevel(root)
+    funWindow.title("ADMIN VOID STATUS")
+    funWindow.geometry("450x350+30+30")
+    funWindow.resizable(False, False)
+    funWindow.configure(bg=background_colour, cursor=rocket_cursor)
+    funWindow.iconbitmap(void_icon)
+
+    width, height = 450, 350
+    canvas = tk.Canvas(funWindow, width=width, height=height, highlightthickness=0, bg=background_colour)
+    canvas.place(x=0, y=0, relwidth=1, relheight=1)
+
+    canvas.create_rectangle(0, 0, width, height, fill=background_colour, outline="")
+
+    for i in range(-100, height + 100, 30):
+        factor = max(0.0, min(1.0, (i / height))) ** 5
+        colour = interpolate_color(background_colour, foreground_colour, factor)
+        canvas.create_line(-100, i, width + 100, i + 60, fill=colour, width=60)
+
+    canvas.create_text(
+        width // 2, 40,
+        text="ADMIN VOID STATUS",
+        font=popup_title_font,
+        fill=active_foreground_colour,
+        justify="center"
+    )
+
+    statuses = [
+        "Void Status: Active",
+        "Connection Established",
+        "Pinging Server",
+        "Placeholder Text (Update Later)",
+        "Contacting the Void",
+        "Void is Unstable!",
+        "Stabilising Void",
+        "Contacting ISS",
+        "Sending details to GSA",
+        "Flying Spacecraft",
+        "Firing Missiles (JK)",
+        "Harvesting Resources",
+        "Sending Shipment to Void",
+        "Reloading Connection!",
+        "Uplinking Data",
+        "Repositioning Antennae"
+    ]
+
+    chosen_status = random.choice(statuses)
+
+    funWindowStatusLabel = Label(funWindow,
+        text=chosen_status,
+        font=popup_text_font,
+        bg=background_colour,
+        fg=foreground_colour,
+        wraplength=375,
+        justify="center"
+    )
+    canvas.create_window(width // 2, 100, window=funWindowStatusLabel)
+
+    def update_status():
+        if funWindow.winfo_exists():
+            new_status = random.choice(statuses)
+            funWindowStatusLabel.config(text=new_status)
+            funWindow.after(5000, update_status)
+    funWindow.after(5000, update_status)
+
+
+    funWindow_exit_btn = Button(funWindow,
+        text="DON'T LEAVE!",
+        font=popup_btn_font,
+        command=funWindow.destroy,
+        bg=foreground_colour,
+        fg=background_colour,
+        activebackground=active_background_colour,
+        activeforeground=active_foreground_colour,
+        padx=10,
+        pady=3
+    )
+    canvas.create_window(width // 2, 300, window=funWindow_exit_btn)
+
+
+
+
+konami_sequence = ["Up", "Up", "Down", "Down", "Left", "Right", "Left", "Right", "b", "a"]
+current_input = []
+def check_konami(event):
+    current_input.append(event.keysym)
+    if len(current_input) > len(konami_sequence):
+        current_input.pop(0)
+
+    normalized_input = [k.lower() for k in current_input]
+    normalized_target = [k.lower() for k in konami_sequence]
+
+    if normalized_input == normalized_target:
+        konami_code_fun()
+        current_input.clear()
+
+
+
 menubar = tk.Menu(root)
 infoMenu = Menu(menubar,
     tearoff=0,
@@ -946,4 +1046,5 @@ infoMenu.add_separator()
 infoMenu.add_command(label="Close Connection", command=lambda: root.destroy())
 
 root.config(menu=menubar)
+root.bind("<Key>", check_konami)
 root.mainloop()

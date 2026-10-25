@@ -13,6 +13,7 @@ If you have any questions, then feel free to **[let me know by email](mailto:kav
 
 In order to use, just download the correct files for your operating system and run it! 
 Don't worry, it is **completely safe to download** and is free from any malicious code, if you don't believe me, look at the code above!
+~~There is also a secret window, try to find it. (Hint: Konami Code)~~
 
 This software is **FREE TO USE** and you are allowed to do (basically) *anything* to it as long as it comes unser the [MIT License](LICENSE)
 
